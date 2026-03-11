@@ -129,6 +129,11 @@
                         <h3 class="text-xl font-bold text-soft-text">Statistik</h3>
                         <p class="text-soft-muted text-center text-sm">Bygg stapeldiagram, linjediagram och cirkeldiagram med egna värden.</p>
                     </button>
+                    <button onclick="switchView('koordinat')" class="bg-soft-surface p-8 rounded-2xl shadow-sm hover:shadow-md border border-soft-border flex flex-col items-center justify-center gap-4 transition-all hover:-translate-y-1 group">
+                        <div class="w-20 h-20 rounded-full bg-soft-purpleLight/30 text-soft-purple flex items-center justify-center text-3xl group-hover:scale-110 transition-transform"><i class="fas fa-crosshairs"></i></div>
+                        <h3 class="text-xl font-bold text-soft-text">Koordinatsystem</h3>
+                        <p class="text-soft-muted text-center text-sm">Rita punkter i ett koordinatplan och utforska x- och y-axeln.</p>
+                    </button>
                 </div>
             </div>
         </section>
@@ -337,7 +342,7 @@
                 <!-- Chart title -->
                 <div>
                     <label class="text-xs font-bold text-soft-muted uppercase tracking-wider">Diagramtitel</label>
-                    <input id="chart-title-input" type="text" value="Mitt diagram" class="mt-1 w-full border border-soft-border rounded-lg px-3 py-2 text-sm text-soft-text bg-soft-bg focus:outline-none focus:border-soft-blue font-semibold" oninput="renderChart()">
+                    <input id="chart-title-input" type="text" value="Mitt diagram" class="mt-1 w-full border border-soft-border rounded-lg px-3 py-2 text-sm text-soft-text bg-soft-bg focus:outline-none focus:border-soft-blue font-semibold" oninput="renderChart(); saveStatData()">
                 </div>
 
                 <!-- Data rows -->
@@ -379,6 +384,56 @@
             </div>
         </section>
 
+        <!-- COORDINATE SYSTEM VIEW -->
+        <section id="view-koordinat" class="view-section flex-row h-full">
+            <!-- Sidebar -->
+            <div class="w-64 bg-soft-surface shadow-md z-10 p-5 flex flex-col gap-4 overflow-y-auto border-r border-soft-border shrink-0">
+                <h3 class="font-bold text-soft-text text-sm uppercase tracking-wider text-soft-muted">Koordinatsystem</h3>
+                <!-- Mode buttons -->
+                <div class="flex flex-col gap-2">
+                    <button onclick="setKoordMode('q1')" id="koord-btn-q1" class="px-4 py-2 bg-soft-purpleLight/30 text-soft-purple font-bold rounded-xl border border-soft-purpleLight/50 text-sm">0 till 10 (Q1)</button>
+                    <button onclick="setKoordMode('all')" id="koord-btn-all" class="px-4 py-2 bg-soft-bg text-soft-text font-bold rounded-xl border border-soft-border text-sm hover:bg-soft-surface">−10 till 10 (alla)</button>
+                </div>
+                <!-- Add point form -->
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs font-bold text-soft-muted uppercase tracking-wider">Lägg till punkt</label>
+                    <div class="flex gap-2 items-center">
+                        <span class="text-xs font-semibold text-soft-text w-4">x:</span>
+                        <input type="number" id="koord-x-input" value="3" class="w-16 border border-soft-border rounded-lg px-2 py-1.5 text-sm text-center bg-soft-bg focus:outline-none focus:border-soft-blue">
+                        <span class="text-xs font-semibold text-soft-text w-4">y:</span>
+                        <input type="number" id="koord-y-input" value="4" class="w-16 border border-soft-border rounded-lg px-2 py-1.5 text-sm text-center bg-soft-bg focus:outline-none focus:border-soft-blue">
+                    </div>
+                    <div class="flex gap-2 items-center">
+                        <span class="text-xs font-semibold text-soft-text">Namn:</span>
+                        <input type="text" id="koord-label-input" value="A" maxlength="6" class="flex-1 border border-soft-border rounded-lg px-2 py-1.5 text-sm bg-soft-bg focus:outline-none focus:border-soft-blue">
+                    </div>
+                    <button onclick="addKoordPoint()" class="bg-soft-purple text-white p-2 rounded-lg text-sm font-bold hover:opacity-90"><i class="fas fa-plus mr-1"></i>Lägg till</button>
+                </div>
+                <!-- Options -->
+                <div class="flex flex-col gap-2">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="koord-show-grid" checked onchange="renderKoord()" class="rounded">
+                        <span class="text-sm text-soft-text font-semibold">Visa rutnät</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="koord-show-labels" checked onchange="renderKoord()" class="rounded">
+                        <span class="text-sm text-soft-text font-semibold">Visa koordinater</span>
+                    </label>
+                </div>
+                <!-- Point list -->
+                <div class="flex flex-col gap-1 overflow-y-auto" id="koord-point-list"></div>
+                <!-- Tip -->
+                <div class="p-3 bg-soft-purpleLight/15 rounded-xl text-xs text-soft-purple border border-soft-purpleLight/30 mt-auto leading-relaxed">
+                    <i class="fas fa-hand-pointer mr-1"></i> <strong>Klicka</strong> i planet för att lägga till punkter. <strong>Dra</strong> för att flytta dem.
+                </div>
+                <button onclick="clearKoordPoints()" class="bg-soft-text hover:bg-soft-muted text-white p-2 rounded-lg text-sm font-semibold"><i class="fas fa-trash mr-1"></i> Rensa allt</button>
+            </div>
+            <!-- Coordinate plane -->
+            <div class="flex-1 flex items-center justify-center bg-soft-bg p-4 overflow-hidden">
+                <svg id="koord-svg" viewBox="0 0 600 600" style="width:min(580px,90vw);height:min(580px,85vh);display:block;touch-action:none;cursor:crosshair;"></svg>
+            </div>
+        </section>
+
     </main>
 
     <script>
@@ -396,9 +451,7 @@
         initClock();
         initTenFriends();
         initStats();
-        document.addEventListener('pointermove', onPointerMove);
-        document.addEventListener('pointerup', onPointerUp);
-        document.addEventListener('pointercancel', onPointerUp);
+        initKoord();
     }
 
     function switchView(viewId) {
@@ -413,12 +466,13 @@
             cleanup3D();
         } else {
             btnHome.classList.remove('hidden');
-            const titles = {fractions:'Bråk',numberlines:'Tallinjer',geometry:'Geometriska objekt',counting:'Räkning',clock:'Klockan',statistics:'Statistik'};
+            const titles = {fractions:'Bråk',numberlines:'Tallinjer',geometry:'Geometriska objekt',counting:'Räkning',clock:'Klockan',statistics:'Statistik',koordinat:'Koordinatsystem'};
             title.innerText = titles[viewId];
             // 3D is now handled per-card, no global init needed
             if (viewId==='counting') setTimeout(()=>{ if(countingMode==='friends') initTenFriends(); else buildMathGrid(countingMode==='multiplication'); },100);
             if (viewId==='statistics') setTimeout(renderChart, 50);
             if (viewId==='clock') setTimeout(initClockDragIfNeeded, 50);
+            if (viewId==='koordinat') setTimeout(renderKoord, 50);
         }
         currentView = viewId;
     }
@@ -469,8 +523,6 @@
         });
         element.onDragEndCallback = onDragEndCallback;
     }
-    function onPointerMove(e) {}
-    function onPointerUp(e) {}
     function rotateSelectedPiece(deg) { if(selectedItem){ selectedItem.dataset.rot=(parseFloat(selectedItem.dataset.rot)||0)+deg; updateTransform(selectedItem); } }
     function deleteSelectedPiece() { if(selectedItem&&selectedItem.parentNode){ selectedItem.parentNode.removeChild(selectedItem); selectedItem=null; } }
     function clearWorkspace(wsId) { document.getElementById(wsId).querySelectorAll('.draggable-item').forEach(i=>i.remove()); selectedItem=null; }
@@ -1468,7 +1520,30 @@
         {label:'Druvor', value:6}
     ];
 
+    function saveStatData() {
+        try {
+            localStorage.setItem('matutf_statdata', JSON.stringify(statData));
+            localStorage.setItem('matutf_charttype', chartType);
+            const titleEl = document.getElementById('chart-title-input');
+            if (titleEl) localStorage.setItem('matutf_charttitle', titleEl.value);
+        } catch(e) {}
+    }
+
     function initStats() {
+        try {
+            const saved = localStorage.getItem('matutf_statdata');
+            if (saved) statData = JSON.parse(saved);
+            const savedType = localStorage.getItem('matutf_charttype');
+            if (savedType) chartType = savedType;
+            const savedTitle = localStorage.getItem('matutf_charttitle');
+            const titleEl = document.getElementById('chart-title-input');
+            if (savedTitle && titleEl) titleEl.value = savedTitle;
+        } catch(e) {}
+        // Sync tab UI with loaded chartType
+        ['bar','line','pie'].forEach(t => {
+            const tab = document.getElementById(`tab-${t}`);
+            if (tab) tab.classList.toggle('active', t === chartType);
+        });
         renderStatRows();
         renderChart();
     }
@@ -1486,6 +1561,7 @@
         };
         document.getElementById('chart-tip').textContent = tips[type];
         renderChart();
+        saveStatData();
     }
 
     function renderStatRows() {
@@ -1502,13 +1578,13 @@
             labelInput.value = row.label;
             labelInput.className = 'stat-input flex-1 text-xs';
             labelInput.placeholder = 'Etikett';
-            labelInput.oninput = (e) => { statData[i].label = e.target.value; renderChart(); };
+            labelInput.oninput = (e) => { statData[i].label = e.target.value; renderChart(); saveStatData(); };
             const valueInput = document.createElement('input');
             valueInput.type = 'number';
             valueInput.value = row.value;
             valueInput.min = 0; valueInput.max = 100;
             valueInput.className = 'stat-input w-14 text-xs font-bold';
-            valueInput.oninput = (e) => { statData[i].value = Math.max(0, parseFloat(e.target.value)||0); renderChart(); };
+            valueInput.oninput = (e) => { statData[i].value = Math.max(0, parseFloat(e.target.value)||0); renderChart(); saveStatData(); };
             div.appendChild(colorDot); div.appendChild(labelInput); div.appendChild(valueInput);
             container.appendChild(div);
         });
@@ -1517,13 +1593,13 @@
     function addStatRow() {
         if(statData.length >= 8) return;
         statData.push({label: `Kategori ${statData.length+1}`, value: Math.floor(Math.random()*8)+2});
-        renderStatRows(); renderChart();
+        renderStatRows(); renderChart(); saveStatData();
     }
 
     function removeLastStatRow() {
         if(statData.length <= 2) return;
         statData.pop();
-        renderStatRows(); renderChart();
+        renderStatRows(); renderChart(); saveStatData();
     }
 
     function renderChart() {
@@ -1717,8 +1793,206 @@
         svg.innerHTML = html;
     }
 
+    // ===================== KOORDINATSYSTEM =====================
+    let koordMode = 'q1'; // 'q1' = first quadrant (0-10), 'all' = all quadrants (-10 to 10)
+    let koordPoints = [];  // {x, y, label, id}
+    let koordNextId = 1;
+    let koordDrag = null;  // {id} while dragging a point
+    const KOORD_COLORS = ['#5b80a5','#a85c72','#4f7c75','#b8a36e','#938db3','#d58b99','#3d8a8a','#8db1d1'];
+
+    function getKoordRange() {
+        return koordMode === 'q1' ? { min: 0, max: 10 } : { min: -10, max: 10 };
+    }
+
+    // Map grid coordinate to SVG pixel (viewBox 0-600)
+    function koordToSvg(gx, gy) {
+        const { min, max } = getKoordRange();
+        const pad = 52, size = 600, plot = size - 2 * pad, range = max - min;
+        return { sx: pad + (gx - min) / range * plot, sy: pad + (max - gy) / range * plot };
+    }
+
+    // Map SVG pixel to grid coordinate
+    function svgToKoord(sx, sy) {
+        const { min, max } = getKoordRange();
+        const pad = 52, size = 600, plot = size - 2 * pad, range = max - min;
+        return { gx: min + (sx - pad) / plot * range, gy: max - (sy - pad) / plot * range };
+    }
+
+    function renderKoord() {
+        const svg = document.getElementById('koord-svg');
+        if (!svg) return;
+        const { min, max } = getKoordRange();
+        const showGrid = document.getElementById('koord-show-grid')?.checked !== false;
+        const showLabels = document.getElementById('koord-show-labels')?.checked !== false;
+        const { sx: ox, sy: oy } = koordToSvg(0, 0);
+        const pad = 52, size = 600;
+
+        let h = '';
+
+        // Grid lines
+        for (let v = min; v <= max; v++) {
+            const { sx } = koordToSvg(v, 0);
+            const { sy } = koordToSvg(0, v);
+            const isAxis = v === 0;
+            if (showGrid || isAxis) {
+                h += `<line x1="${sx}" y1="${pad}" x2="${sx}" y2="${size-pad}" stroke="${isAxis ? '#8c8d92' : '#e8e5e0'}" stroke-width="${isAxis ? 2 : 0.8}"/>`;
+                h += `<line x1="${pad}" y1="${sy}" x2="${size-pad}" y2="${sy}" stroke="${isAxis ? '#8c8d92' : '#e8e5e0'}" stroke-width="${isAxis ? 2 : 0.8}"/>`;
+            }
+        }
+
+        // Tick marks and axis number labels
+        for (let v = min; v <= max; v++) {
+            const { sx } = koordToSvg(v, 0);
+            const { sy } = koordToSvg(0, v);
+            h += `<line x1="${sx}" y1="${oy-5}" x2="${sx}" y2="${oy+5}" stroke="#4a4b50" stroke-width="1.5"/>`;
+            h += `<line x1="${ox-5}" y1="${sy}" x2="${ox+5}" y2="${sy}" stroke="#4a4b50" stroke-width="1.5"/>`;
+            if (v !== 0) {
+                h += `<text x="${sx}" y="${oy+20}" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" fill="#4a4b50" font-weight="600">${v}</text>`;
+                h += `<text x="${ox-10}" y="${sy+5}" text-anchor="end" font-family="Nunito,sans-serif" font-size="12" fill="#4a4b50" font-weight="600">${v}</text>`;
+            }
+        }
+        // Origin label
+        h += `<text x="${ox-10}" y="${oy+20}" text-anchor="end" font-family="Nunito,sans-serif" font-size="12" fill="#4a4b50" font-weight="600">0</text>`;
+
+        // Axis arrows
+        h += `<polygon points="${size-pad+2},${oy} ${size-pad-8},${oy-5} ${size-pad-8},${oy+5}" fill="#4a4b50"/>`;
+        h += `<polygon points="${ox},${pad-2} ${ox-5},${pad+8} ${ox+5},${pad+8}" fill="#4a4b50"/>`;
+        // Axis labels
+        h += `<text x="${size-pad+12}" y="${oy+5}" font-family="Nunito,sans-serif" font-size="16" fill="#4a4b50" font-weight="800">x</text>`;
+        h += `<text x="${ox}" y="${pad-12}" text-anchor="middle" font-family="Nunito,sans-serif" font-size="16" fill="#4a4b50" font-weight="800">y</text>`;
+
+        // Points (render below labels, circles on top)
+        koordPoints.forEach((pt, idx) => {
+            const { sx, sy } = koordToSvg(pt.x, pt.y);
+            if (sx < pad-10 || sx > size-pad+10 || sy < pad-10 || sy > size-pad+10) return;
+            const color = KOORD_COLORS[idx % KOORD_COLORS.length];
+            const isDragged = koordDrag && koordDrag.id === pt.id;
+            h += `<circle cx="${sx}" cy="${sy}" r="${isDragged ? 10 : 8}" fill="${color}" stroke="white" stroke-width="2.5" class="koord-point" data-id="${pt.id}" style="cursor:grab;"/>`;
+            if (showLabels) {
+                h += `<text x="${sx+13}" y="${sy-10}" font-family="Nunito,sans-serif" font-size="13" fill="${color}" font-weight="800">${pt.label} (${pt.x}, ${pt.y})</text>`;
+            }
+        });
+
+        svg.innerHTML = h;
+    }
+
+    function initKoord() {
+        const svg = document.getElementById('koord-svg');
+        if (!svg) return;
+
+        svg.addEventListener('pointerdown', (e) => {
+            const params = getKoordRange();
+            if (e.target.classList.contains('koord-point')) {
+                koordDrag = { id: parseInt(e.target.dataset.id) };
+                svg.setPointerCapture(e.pointerId);
+                e.preventDefault();
+            } else {
+                // Click on background adds a new point
+                const rect = svg.getBoundingClientRect();
+                const scaleX = 600 / rect.width, scaleY = 600 / rect.height;
+                const { gx, gy } = svgToKoord((e.clientX - rect.left) * scaleX, (e.clientY - rect.top) * scaleY);
+                const ix = Math.round(gx), iy = Math.round(gy);
+                if (ix >= params.min && ix <= params.max && iy >= params.min && iy <= params.max) {
+                    const lbl = document.getElementById('koord-label-input')?.value.trim() ||
+                        String.fromCharCode(65 + koordPoints.length % 26);
+                    koordPoints.push({ x: ix, y: iy, label: lbl, id: koordNextId++ });
+                    // Auto-advance single uppercase letter names
+                    const li = document.getElementById('koord-label-input');
+                    if (li && /^[A-Z]$/.test(li.value)) {
+                        li.value = String.fromCharCode(li.value.charCodeAt(0) < 90 ? li.value.charCodeAt(0) + 1 : 65);
+                    }
+                    updateKoordPointList();
+                    renderKoord();
+                }
+            }
+        });
+
+        svg.addEventListener('pointermove', (e) => {
+            if (!koordDrag) return;
+            const params = getKoordRange();
+            const rect = svg.getBoundingClientRect();
+            const scaleX = 600 / rect.width, scaleY = 600 / rect.height;
+            const { gx, gy } = svgToKoord((e.clientX - rect.left) * scaleX, (e.clientY - rect.top) * scaleY);
+            const ix = Math.round(Math.max(params.min, Math.min(params.max, gx)));
+            const iy = Math.round(Math.max(params.min, Math.min(params.max, gy)));
+            const pt = koordPoints.find(p => p.id === koordDrag.id);
+            if (pt && (pt.x !== ix || pt.y !== iy)) {
+                pt.x = ix; pt.y = iy;
+                updateKoordPointList();
+                renderKoord();
+            }
+        });
+
+        svg.addEventListener('pointerup', (e) => {
+            if (svg.hasPointerCapture(e.pointerId)) svg.releasePointerCapture(e.pointerId);
+            koordDrag = null;
+        });
+
+        svg.addEventListener('pointercancel', () => { koordDrag = null; });
+
+        renderKoord();
+    }
+
+    function setKoordMode(mode) {
+        koordMode = mode;
+        const activeClass = 'px-4 py-2 bg-soft-purpleLight/30 text-soft-purple font-bold rounded-xl border border-soft-purpleLight/50 text-sm';
+        const inactiveClass = 'px-4 py-2 bg-soft-bg text-soft-text font-bold rounded-xl border border-soft-border text-sm hover:bg-soft-surface';
+        document.getElementById('koord-btn-q1').className = mode === 'q1' ? activeClass : inactiveClass;
+        document.getElementById('koord-btn-all').className = mode === 'all' ? activeClass : inactiveClass;
+        // Remove any points that are outside the new range
+        const { min, max } = getKoordRange();
+        koordPoints = koordPoints.filter(p => p.x >= min && p.x <= max && p.y >= min && p.y <= max);
+        updateKoordPointList();
+        renderKoord();
+    }
+
+    function addKoordPoint() {
+        const { min, max } = getKoordRange();
+        const xEl = document.getElementById('koord-x-input');
+        const yEl = document.getElementById('koord-y-input');
+        const lblEl = document.getElementById('koord-label-input');
+        const x = parseInt(xEl?.value) || 0;
+        const y = parseInt(yEl?.value) || 0;
+        if (x < min || x > max || y < min || y > max) return;
+        const lbl = lblEl?.value.trim() || String.fromCharCode(65 + koordPoints.length % 26);
+        koordPoints.push({ x, y, label: lbl, id: koordNextId++ });
+        if (lblEl && /^[A-Z]$/.test(lblEl.value)) {
+            lblEl.value = String.fromCharCode(lblEl.value.charCodeAt(0) < 90 ? lblEl.value.charCodeAt(0) + 1 : 65);
+        }
+        updateKoordPointList();
+        renderKoord();
+    }
+
+    function removeKoordPoint(id) {
+        koordPoints = koordPoints.filter(p => p.id !== id);
+        updateKoordPointList();
+        renderKoord();
+    }
+
+    function clearKoordPoints() {
+        koordPoints = [];
+        koordNextId = 1;
+        const lblEl = document.getElementById('koord-label-input');
+        if (lblEl) lblEl.value = 'A';
+        updateKoordPointList();
+        renderKoord();
+    }
+
+    function updateKoordPointList() {
+        const list = document.getElementById('koord-point-list');
+        if (!list) return;
+        list.innerHTML = '';
+        koordPoints.forEach((pt, idx) => {
+            const color = KOORD_COLORS[idx % KOORD_COLORS.length];
+            const row = document.createElement('div');
+            row.className = 'flex items-center gap-2 bg-soft-bg rounded-lg px-2 py-1 border border-soft-border text-xs';
+            row.innerHTML = `<div class="w-3 h-3 rounded-full shrink-0" style="background:${color}"></div><span class="font-bold text-soft-text">${pt.label}</span><span class="text-soft-muted flex-1">(${pt.x}, ${pt.y})</span><button onclick="removeKoordPoint(${pt.id})" class="text-soft-pink hover:opacity-70 ml-1"><i class="fas fa-times"></i></button>`;
+            list.appendChild(row);
+        });
+    }
+
     window.onload = initApp;
-    window.addEventListener('resize', () => { if(currentView==='statistics') renderChart(); if(is3DActive) onWindowResize3D(); });
+    window.addEventListener('resize', () => { if(currentView==='statistics') renderChart(); if(currentView==='koordinat') renderKoord(); });
     </script>
 </body>
 </html>
