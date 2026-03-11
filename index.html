@@ -1876,6 +1876,17 @@
         svg.innerHTML = h;
     }
 
+    function nextAutoLabel() {
+        const used = new Set(koordPoints.map(p => p.label));
+        for (let i = 0; i < 26; i++) {
+            const lbl = String.fromCharCode(65 + (koordNextId - 1 + i) % 26);
+            if (!used.has(lbl)) return lbl;
+        }
+        let n = 1;
+        while (used.has(`P${n}`)) n++;
+        return `P${n}`;
+    }
+
     function initKoord() {
         const svg = document.getElementById('koord-svg');
         if (!svg) return;
@@ -1894,7 +1905,7 @@
                 const ix = Math.round(gx), iy = Math.round(gy);
                 if (ix >= params.min && ix <= params.max && iy >= params.min && iy <= params.max) {
                     const lbl = document.getElementById('koord-label-input')?.value.trim() ||
-                        String.fromCharCode(65 + koordPoints.length % 26);
+                        nextAutoLabel();
                     koordPoints.push({ x: ix, y: iy, label: lbl, id: koordNextId++ });
                     // Auto-advance single uppercase letter names
                     const li = document.getElementById('koord-label-input');
@@ -1954,7 +1965,7 @@
         const x = parseInt(xEl?.value) || 0;
         const y = parseInt(yEl?.value) || 0;
         if (x < min || x > max || y < min || y > max) return;
-        const lbl = lblEl?.value.trim() || String.fromCharCode(65 + koordPoints.length % 26);
+        const lbl = lblEl?.value.trim() || nextAutoLabel();
         koordPoints.push({ x, y, label: lbl, id: koordNextId++ });
         if (lblEl && /^[A-Z]$/.test(lblEl.value)) {
             lblEl.value = String.fromCharCode(lblEl.value.charCodeAt(0) < 90 ? lblEl.value.charCodeAt(0) + 1 : 65);
