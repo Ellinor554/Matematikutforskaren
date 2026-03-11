@@ -1,0 +1,1724 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Interaktiva matematikverktyg för elever</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        soft: {
+                            bg: '#f4f3ef',
+                            surface: '#ffffff',
+                            text: '#4a4b50',
+                            muted: '#8c8d92',
+                            border: '#d6d4d0',
+                            blue: '#5b80a5',
+                            blueLight: '#8db1d1',
+                            green: '#4f7c75',
+                            greenLight: '#8bb39c',
+                            purple: '#6a6281',
+                            purpleLight: '#938db3',
+                            pink: '#a85c72',
+                            pinkLight: '#d58b99',
+                            yellow: '#dec894',
+                            yellowDark: '#b8a36e',
+                            teal: '#3d8a8a',
+                            tealLight: '#72b5b5'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+        body { font-family: 'Nunito', sans-serif; touch-action: none; overflow: hidden; background-color: #f4f3ef; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d6d4d0; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #8c8d92; }
+        .workspace { position: relative; width: 100%; height: 100%; overflow: hidden; background-image: radial-gradient(#d6d4d0 1px, transparent 1px); background-size: 20px 20px; }
+        .draggable-item { position: absolute; cursor: grab; user-select: none; touch-action: none; filter: drop-shadow(0 4px 6px rgba(74,75,80,0.1)); transition: filter 0.2s; transform-origin: center center; }
+        .draggable-item:active { cursor: grabbing; filter: drop-shadow(0 8px 15px rgba(74,75,80,0.2)); z-index: 50 !important; }
+        .draggable-item.selected { /* no outline */ }
+        .clock-hand { cursor: pointer; }
+        .clock-hand:hover { opacity: 0.75; }
+        .view-section { display: none; opacity: 0; transition: opacity 0.3s ease; }
+        .view-section.active { display: flex; opacity: 1; }
+        #canvas-container { width: 100%; height: 100%; cursor: move; }
+        .geo-btn { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:6px 4px; background:#f4f3ef; border:1px solid #d6d4d0; border-radius:10px; font-size:11px; font-weight:700; color:#4a4b50; cursor:pointer; transition:all 0.15s; }
+        .geo-btn:hover { background:white; box-shadow:0 2px 8px rgba(74,75,80,0.12); }
+        .geo-3d-card { position:absolute; cursor:grab; user-select:none; touch-action:none; border-radius:12px; overflow:hidden; box-shadow:0 4px 14px rgba(74,75,80,0.18); border:2px solid #e8e5e0; background:white; transform-origin:top left; }
+        .geo-3d-card:active { cursor:grabbing; }
+        .geo-resize-handle { position:absolute; bottom:-4px; right:-4px; width:22px; height:22px; background:white; border:2px solid #8c8d92; border-radius:5px; cursor:nwse-resize; display:flex; align-items:center; justify-content:center; font-size:15px; color:#4a4b50; user-select:none; touch-action:none; z-index:10; font-weight:900; box-shadow:0 2px 6px rgba(0,0,0,0.15); }
+        .math-grid-cell { transition: all 0.1s; }
+        .math-grid-cell:hover { background-color: #f4f3ef; transform: scale(1.1); z-index: 10; font-weight: bold; border-radius: 4px; }
+        .highlight-row-col { background-color: #f4f3ef; }
+
+        /* Fraction styles */
+        .frac-slice { transition: opacity 0.15s; }
+        .frac-slice:hover { opacity: 0.78 !important; filter: brightness(1.08); }
+        .frac-circle-group:hover { filter: drop-shadow(0 6px 14px rgba(74,75,80,0.22)); }
+
+        /* Stats styles */
+        .stat-bar { transition: height 0.4s cubic-bezier(0.34,1.56,0.64,1); cursor: ns-resize; }
+        .stat-bar:hover { opacity: 0.85; }
+        .stat-input { border: none; border-bottom: 2px solid #d6d4d0; background: transparent; text-align: center; font-family: 'Nunito', sans-serif; font-size: 13px; color: #4a4b50; width: 100%; outline: none; padding: 2px 0; }
+        .stat-input:focus { border-bottom-color: #5b80a5; }
+        .chart-tab { transition: all 0.2s; }
+        .chart-tab.active { background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.1); color: #5b80a5; font-weight: 700; }
+        .pie-slice { cursor: pointer; transition: opacity 0.2s, transform 0.2s; transform-origin: center; }
+        .pie-slice:hover { opacity: 0.85; }
+        .line-dot { cursor: pointer; transition: r 0.2s; }
+        .line-dot:hover { r: 8; }
+        .drag-handle-bar { position: absolute; top: 0; left: 0; right: 0; height: 100%; cursor: ns-resize; }
+    </style>
+</head>
+<body class="text-soft-text flex flex-col h-screen">
+
+    <header class="bg-soft-surface shadow-sm z-20 px-6 py-4 flex items-center justify-between shrink-0 border-b border-soft-border">
+        <div class="flex items-center gap-4">
+            <button id="btn-home" class="hidden text-soft-muted hover:text-soft-blue transition-colors p-2 rounded-full hover:bg-soft-bg" onclick="switchView('home')">
+                <i class="fas fa-arrow-left text-xl"></i>
+            </button>
+            <h1 class="text-2xl font-bold text-soft-text tracking-tight" id="app-title"><i class="fas fa-shapes text-soft-blue mr-2"></i> Matematikutforskaren</h1>
+        </div>
+        <div id="controls-area" class="flex gap-3"></div>
+    </header>
+
+    <main class="flex-1 relative overflow-hidden bg-soft-bg">
+
+        <!-- HOME VIEW -->
+        <section id="view-home" class="view-section active flex-col h-full overflow-y-auto p-8">
+            <div class="max-w-5xl mx-auto w-full">
+                <h2 class="text-3xl font-bold text-soft-text mb-8 text-center">Vad vill du utforska idag?</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <button onclick="switchView('fractions')" class="bg-soft-surface p-8 rounded-2xl shadow-sm hover:shadow-md border border-soft-border flex flex-col items-center justify-center gap-4 transition-all hover:-translate-y-1 group">
+                        <div class="w-20 h-20 rounded-full bg-soft-pinkLight/30 text-soft-pink flex items-center justify-center text-3xl group-hover:scale-110 transition-transform"><i class="fas fa-chart-pie"></i></div>
+                        <h3 class="text-xl font-bold text-soft-text">Bråk</h3>
+                        <p class="text-soft-muted text-center text-sm">Jämför delar och bygg hela med flyttbara bråkcirklar.</p>
+                    </button>
+                    <button onclick="switchView('numberlines')" class="bg-soft-surface p-8 rounded-2xl shadow-sm hover:shadow-md border border-soft-border flex flex-col items-center justify-center gap-4 transition-all hover:-translate-y-1 group">
+                        <div class="w-20 h-20 rounded-full bg-soft-blueLight/30 text-soft-blue flex items-center justify-center text-3xl group-hover:scale-110 transition-transform"><i class="fas fa-ruler-horizontal"></i></div>
+                        <h3 class="text-xl font-bold text-soft-text">Tallinjer</h3>
+                        <p class="text-soft-muted text-center text-sm">Hoppa längs linjer från 0-10, 0-100 och utforska decimaltal.</p>
+                    </button>
+                    <button onclick="switchView('geometry')" class="bg-soft-surface p-8 rounded-2xl shadow-sm hover:shadow-md border border-soft-border flex flex-col items-center justify-center gap-4 transition-all hover:-translate-y-1 group">
+                        <div class="w-20 h-20 rounded-full bg-soft-greenLight/30 text-soft-green flex items-center justify-center text-3xl group-hover:scale-110 transition-transform"><i class="fas fa-cubes"></i></div>
+                        <h3 class="text-xl font-bold text-soft-text">Geometriska objekt</h3>
+                        <p class="text-soft-muted text-center text-sm">Vrid och vänd på 2D- och 3D-former för att förstå deras egenskaper.</p>
+                    </button>
+                    <button onclick="switchView('counting')" class="bg-soft-surface p-8 rounded-2xl shadow-sm hover:shadow-md border border-soft-border flex flex-col items-center justify-center gap-4 transition-all hover:-translate-y-1 group">
+                        <div class="w-20 h-20 rounded-full bg-soft-yellow/40 text-soft-yellowDark flex items-center justify-center text-3xl group-hover:scale-110 transition-transform"><i class="fas fa-calculator"></i></div>
+                        <h3 class="text-xl font-bold text-soft-text">Räkning</h3>
+                        <p class="text-soft-muted text-center text-sm">Hitta tiokompisarna och öva med multiplikations- och divisionskvadrater.</p>
+                    </button>
+                    <button onclick="switchView('clock')" class="bg-soft-surface p-8 rounded-2xl shadow-sm hover:shadow-md border border-soft-border flex flex-col items-center justify-center gap-4 transition-all hover:-translate-y-1 group">
+                        <div class="w-20 h-20 rounded-full bg-soft-purpleLight/30 text-soft-purple flex items-center justify-center text-3xl group-hover:scale-110 transition-transform"><i class="fas fa-clock"></i></div>
+                        <h3 class="text-xl font-bold text-soft-text">Klockan</h3>
+                        <p class="text-soft-muted text-center text-sm">Dra i visarna för att jämföra analog och digital tid.</p>
+                    </button>
+                    <button onclick="switchView('statistics')" class="bg-soft-surface p-8 rounded-2xl shadow-sm hover:shadow-md border border-soft-border flex flex-col items-center justify-center gap-4 transition-all hover:-translate-y-1 group">
+                        <div class="w-20 h-20 rounded-full bg-soft-tealLight/30 text-soft-teal flex items-center justify-center text-3xl group-hover:scale-110 transition-transform"><i class="fas fa-chart-bar"></i></div>
+                        <h3 class="text-xl font-bold text-soft-text">Statistik</h3>
+                        <p class="text-soft-muted text-center text-sm">Bygg stapeldiagram, linjediagram och cirkeldiagram med egna värden.</p>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- FRACTIONS VIEW -->
+        <section id="view-fractions" class="view-section flex-row h-full">
+            <div class="w-64 bg-soft-surface shadow-md z-10 p-5 flex flex-col gap-4 overflow-y-auto border-r border-soft-border shrink-0">
+                <h3 class="font-bold text-soft-text text-sm uppercase tracking-wider text-soft-muted">Lägg till cirkel</h3>
+                <div class="flex flex-col gap-2" id="fraction-buttons"></div>
+                <hr class="border-soft-border"/>
+                <div class="p-3 bg-soft-blueLight/15 rounded-xl text-xs text-soft-blue border border-soft-blueLight/30 leading-relaxed">
+                    <i class="fas fa-hand-pointer mr-1"></i> <strong>Dra cirkeln</strong> för att flytta den.<br>
+                    <i class="fas fa-expand-arrows-alt mr-1 mt-1"></i> <strong>Dra en bit</strong> för att lyfta ur den.<br>
+                    <i class="fas fa-search-plus mr-1 mt-1"></i> <strong>Dra ⌟-hörnet</strong> för att ändra storlek.
+                </div>
+                <button onclick="clearFractionWorkspace()" class="bg-soft-text hover:bg-soft-muted text-white p-2 rounded-lg mt-auto text-sm font-semibold"><i class="fas fa-trash mr-1"></i> Rensa allt</button>
+            </div>
+            <div class="flex-1 workspace" id="workspace-fractions"></div>
+        </section>
+
+        <!-- NUMBER LINES VIEW -->
+        <section id="view-numberlines" class="view-section flex-col h-full bg-soft-surface">
+            <div class="flex justify-center gap-4 p-4 bg-soft-bg border-b border-soft-border shrink-0 flex-wrap">
+                <button onclick="setNumberLine(0,10,1)" class="px-4 py-2 bg-soft-blueLight/30 text-soft-blue font-bold rounded-full hover:bg-soft-blueLight/50 whitespace-nowrap">0 till 10</button>
+                <button onclick="setNumberLine(0,100,1)" class="px-4 py-2 bg-soft-blueLight/30 text-soft-blue font-bold rounded-full hover:bg-soft-blueLight/50 whitespace-nowrap">0 till 100</button>
+                <button onclick="setNumberLine(0,3,0.1,true)" class="px-4 py-2 bg-soft-blueLight/30 text-soft-blue font-bold rounded-full hover:bg-soft-blueLight/50 whitespace-nowrap">0 till 3 (Decimaler)</button>
+            </div>
+            <div class="flex-1 relative flex items-center justify-center p-8 overflow-x-auto">
+                <div id="numberline-container" class="relative w-full max-w-5xl flex flex-col items-center" style="min-height:220px;"></div>
+            </div>
+        </section>
+
+        <!-- GEOMETRY VIEW -->
+        <section id="view-geometry" class="view-section flex-row h-full">
+            <!-- Sidebar -->
+            <div class="w-64 bg-soft-surface shadow-md z-10 p-4 flex flex-col gap-3 overflow-y-auto border-r border-soft-border shrink-0">
+
+                <!-- 2D shapes -->
+                <h3 class="font-bold text-soft-text text-xs uppercase tracking-wider text-soft-muted">2D-former</h3>
+                <div class="grid grid-cols-2 gap-1.5">
+                    <button onclick="add2DShape('circle')"        class="geo-btn"><svg viewBox="0 0 40 40" width="28" height="28"><circle cx="20" cy="20" r="16" fill="#d58b99" stroke="#a85c72" stroke-width="2.5"/></svg>Cirkel</button>
+                    <button onclick="add2DShape('triangle')"      class="geo-btn"><svg viewBox="0 0 40 40" width="28" height="28"><polygon points="20,5 37,35 3,35" fill="#dec894" stroke="#b8a36e" stroke-width="2.5" stroke-linejoin="round"/></svg>Triangel</button>
+                    <button onclick="add2DShape('square')"        class="geo-btn"><svg viewBox="0 0 40 40" width="28" height="28"><rect x="5" y="5" width="30" height="30" fill="#8bb39c" stroke="#4f7c75" stroke-width="2.5"/></svg>Kvadrat</button>
+                    <button onclick="add2DShape('rectangle')"     class="geo-btn"><svg viewBox="0 0 40 40" width="28" height="28"><rect x="2" y="11" width="36" height="20" fill="#8db1d1" stroke="#5b80a5" stroke-width="2.5"/></svg>Rektangel</button>
+                    <button onclick="add2DShape('pentagon')"      class="geo-btn"><svg viewBox="0 0 40 40" width="28" height="28"><polygon points="20,3 37,15 31,35 9,35 3,15" fill="#dec894" stroke="#b8a36e" stroke-width="2.5"/></svg>Pentagon</button>
+                    <button onclick="add2DShape('hexagon')"       class="geo-btn"><svg viewBox="0 0 40 40" width="28" height="28"><polygon points="20,2 36,11 36,29 20,38 4,29 4,11" fill="#8bb39c" stroke="#4f7c75" stroke-width="2.5"/></svg>Hexagon</button>
+                    <button onclick="add2DShape('rhombus')"       class="geo-btn"><svg viewBox="0 0 40 40" width="28" height="28"><polygon points="20,3 37,20 20,37 3,20" fill="#dec894" stroke="#b8a36e" stroke-width="2.5"/></svg>Romb</button>
+                    <button onclick="add2DShape('parallelogram')" class="geo-btn"><svg viewBox="0 0 40 40" width="28" height="28"><polygon points="10,32 4,8 30,8 36,32" fill="#8db1d1" stroke="#5b80a5" stroke-width="2.5"/></svg>Parallellogram</button>
+                </div>
+
+                <hr class="border-soft-border my-1"/>
+
+                <!-- 3D objects -->
+                <h3 class="font-bold text-soft-text text-xs uppercase tracking-wider text-soft-muted">3D-objekt</h3>
+                <div class="grid grid-cols-2 gap-1.5">
+                    <button onclick="add3DCard('cylinder')" class="geo-btn"><i class="fas fa-database text-[#5b80a5] text-xl"></i>Cylinder</button>
+                    <button onclick="add3DCard('cube')"     class="geo-btn"><i class="fas fa-cube text-[#4f7c75] text-xl"></i>Kub</button>
+                    <button onclick="add3DCard('cuboid')"   class="geo-btn"><i class="fas fa-box text-[#5b80a5] text-xl"></i>Rätblock</button>
+                    <button onclick="add3DCard('sphere')"   class="geo-btn"><i class="fas fa-globe text-[#a85c72] text-xl"></i>Klot</button>
+                    <button onclick="add3DCard('pyramid')"  class="geo-btn"><i class="fas fa-caret-up text-[#dec894] text-xl"></i>Pyramid</button>
+                    <button onclick="add3DCard('cone')"     class="geo-btn"><i class="fas fa-caret-up text-[#938db3] text-xl"></i>Kon</button>
+                </div>
+
+                <hr class="border-soft-border my-1"/>
+
+                <!-- Selected shape tools -->
+                <div class="flex gap-2">
+                    <button onclick="rotateSelectedPiece(-15)" class="flex-1 bg-soft-bg p-2 rounded text-soft-text hover:bg-[#eae8e3] text-sm border border-soft-border"><i class="fas fa-undo"></i></button>
+                    <button onclick="rotateSelectedPiece(15)"  class="flex-1 bg-soft-bg p-2 rounded text-soft-text hover:bg-[#eae8e3] text-sm border border-soft-border"><i class="fas fa-redo"></i></button>
+                    <button onclick="deleteSelectedPiece()" class="flex-1 bg-soft-pinkLight/20 text-soft-pink p-2 rounded hover:bg-soft-pinkLight/40 text-sm border border-soft-pinkLight/30"><i class="fas fa-trash"></i></button>
+                </div>
+                <div class="p-2.5 bg-soft-blueLight/15 rounded-xl text-xs text-soft-blue border border-soft-blueLight/30 leading-relaxed">
+                    <i class="fas fa-search-plus mr-1"></i><strong>Dra ⌟-hörnet</strong> för att ändra storlek.<br/>
+                    <i class="fas fa-sync-alt mr-1 mt-1"></i>Dra 3D-objekt för att rotera dem.
+                </div>
+                <button onclick="clearGeoWorkspace()" class="bg-soft-text hover:bg-soft-muted text-white p-2 rounded mt-auto text-sm font-semibold">Rensa allt</button>
+            </div>
+
+            <!-- Shared workspace for both 2D and 3D -->
+            <div class="flex-1 workspace relative" id="workspace-geometry"></div>
+        </section>
+
+        <!-- COUNTING VIEW -->
+        <section id="view-counting" class="view-section flex-col h-full bg-soft-surface">
+            <div class="flex justify-center gap-4 p-4 bg-soft-bg border-b border-soft-border shrink-0 flex-wrap">
+                <button onclick="setCountingMode('friends')" class="px-4 py-2 bg-soft-yellow/40 text-soft-text font-bold rounded-full hover:bg-soft-yellow/70">Tiokompisar</button>
+                <button onclick="setCountingMode('multiplication')" class="px-4 py-2 bg-soft-yellow/40 text-soft-text font-bold rounded-full hover:bg-soft-yellow/70">Multiplikationskvadrat</button>
+                <button onclick="setCountingMode('division')" class="px-4 py-2 bg-soft-yellow/40 text-soft-text font-bold rounded-full hover:bg-soft-yellow/70">Divisionskvadrat</button>
+            </div>
+            <div class="flex-1 relative overflow-auto p-4 flex items-center justify-center">
+                <div id="counting-friends" class="w-full max-w-4xl h-full flex flex-col items-center">
+                    <h3 class="text-2xl font-bold text-soft-text mb-6">Gruppera tiokompisarna</h3>
+                    <div class="flex w-full gap-8 h-64 mb-8">
+                        <div class="flex-1 border-4 border-dashed border-soft-pinkLight rounded-3xl bg-soft-pinkLight/10 flex flex-wrap content-start p-4 gap-2 relative drop-zone" id="zone-1"></div>
+                        <div class="flex items-center text-5xl font-bold text-soft-border">+</div>
+                        <div class="flex-1 border-4 border-dashed border-soft-blueLight rounded-3xl bg-soft-blueLight/10 flex flex-wrap content-start p-4 gap-2 relative drop-zone" id="zone-2"></div>
+                    </div>
+                    <div class="text-4xl font-bold text-soft-text bg-white shadow-lg px-8 py-4 rounded-full border border-soft-border">
+                        <span id="friend-count-1" class="text-soft-pink">5</span> + <span id="friend-count-2" class="text-soft-blue">5</span> = 10
+                    </div>
+                </div>
+                <div id="counting-grid" class="hidden flex-col items-center pb-10">
+                    <div id="grid-equation" class="h-16 flex items-center justify-center text-2xl md:text-3xl font-bold text-soft-purple mb-4 bg-soft-purpleLight/20 px-8 rounded-full">För musen över eller tryck på rutorna</div>
+                    <div id="math-table-container" class="bg-white p-4 shadow-lg rounded-xl border border-soft-border overflow-x-auto"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CLOCK VIEW -->
+        <section id="view-clock" class="view-section flex-col md:flex-row h-full items-center justify-center bg-soft-bg gap-10 p-6 overflow-auto">
+            <!-- Analog Clock -->
+            <div class="flex items-center justify-center select-none shrink-0">
+                <svg id="analog-clock" viewBox="0 0 340 340" style="width:min(520px,92vw);height:min(520px,92vw);">
+
+                    <!-- Minute ring background (teal) -->
+                    <circle cx="170" cy="170" r="165" fill="#7ec8c8" stroke="#5aabab" stroke-width="1.5"/>
+
+                    <!-- Minute labels and ticks -->
+                    <g id="clock-minute-ring"></g>
+
+                    <!-- Main clock face -->
+                    <circle cx="170" cy="170" r="138" fill="white" stroke="#e8e5e0" stroke-width="2"/>
+
+                    <!-- Inner tick marks -->
+                    <g id="clock-ticks"></g>
+
+                    <!-- 24h numbers (outer, orange/amber) -->
+                    <g id="clock-numbers-24"></g>
+
+                    <!-- 12h numbers (inner, dark blue) -->
+                    <g id="clock-numbers-12"></g>
+
+                    <!-- Hour hand -->
+                    <line id="hand-hour"
+                        x1="170" y1="170" x2="170" y2="100"
+                        stroke="#1a2e5a" stroke-width="7" stroke-linecap="round"
+                        class="clock-hand" transform="rotate(0 170 170)"/>
+
+                    <!-- Minute hand -->
+                    <line id="hand-minute"
+                        x1="170" y1="170" x2="170" y2="48"
+                        stroke="#c0392b" stroke-width="4.5" stroke-linecap="round"
+                        class="clock-hand" transform="rotate(0 170 170)"/>
+
+                    <!-- Centre dot -->
+                    <circle cx="170" cy="170" r="7" fill="#1a2e5a"/>
+                    <circle cx="170" cy="170" r="3.5" fill="#c0392b"/>
+                </svg>
+            </div>
+
+            <!-- Digital panel -->
+            <div class="flex flex-col items-center gap-5 bg-white p-7 rounded-3xl shadow-lg border border-soft-border w-full max-w-xs">
+                <h3 class="text-sm font-bold text-soft-muted uppercase tracking-widest">Digital tid</h3>
+
+                <!-- Förmiddag display (AM, 00:00–11:59) -->
+                <div id="panel-fm" class="w-full rounded-2xl border-2 p-4 transition-all" style="border-color:#d6d4d0; opacity:0.45;">
+                    <div class="text-xs font-bold mb-2 uppercase tracking-wider" style="color:#1a2e5a;">🌅 Förmiddag</div>
+                    <div class="text-4xl font-mono font-bold flex items-center gap-1" style="color:#1a2e5a;">
+                        <span id="digital-h-fm">10</span><span class="opacity-40 text-2xl pb-1">:</span><span id="digital-m-fm">00</span>
+                    </div>
+                    <div class="text-xs text-soft-muted mt-1 font-semibold">00:00 – 11:59</div>
+                </div>
+
+                <!-- Eftermiddag display (PM, 12:00–23:59) -->
+                <div id="panel-em" class="w-full rounded-2xl border-2 p-4 transition-all" style="border-color:#d6d4d0; opacity:0.45;">
+                    <div class="text-xs font-bold mb-2 uppercase tracking-wider" style="color:#1a2e5a;">🌇 Eftermiddag</div>
+                    <div class="text-4xl font-mono font-bold flex items-center gap-1" style="color:#1a2e5a;">
+                        <span id="digital-h-em">22</span><span class="opacity-40 text-2xl pb-1">:</span><span id="digital-m-em">00</span>
+                    </div>
+                    <div class="text-xs text-soft-muted mt-1 font-semibold">12:00 – 23:59</div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex gap-3 w-full">
+                    <button onclick="adjustTime(-60)" class="flex-1 bg-soft-bg hover:bg-soft-border py-2.5 rounded-lg font-bold text-soft-text border border-soft-border text-sm">−1 tim</button>
+                    <button onclick="adjustTime(60)"  class="flex-1 bg-soft-bg hover:bg-soft-border py-2.5 rounded-lg font-bold text-soft-text border border-soft-border text-sm">+1 tim</button>
+                </div>
+                <div class="flex gap-3 w-full">
+                    <button onclick="adjustTime(-1)"  class="flex-1 bg-soft-bg hover:bg-soft-border py-2.5 rounded-lg font-bold text-soft-text border border-soft-border text-sm">−1 min</button>
+                    <button onclick="adjustTime(1)"   class="flex-1 bg-soft-bg hover:bg-soft-border py-2.5 rounded-lg font-bold text-soft-text border border-soft-border text-sm">+1 min</button>
+                </div>
+
+                <p class="text-xs text-soft-muted text-center leading-relaxed">
+                    <i class="fas fa-hand-pointer mr-1"></i>Dra den <span style="color:#c0392b;font-weight:700;">röda</span> minutvisaren eller den <span style="color:#1a2e5a;font-weight:700;">blå</span> timvisaren för att ändra tiden.
+                </p>
+            </div>
+        </section>
+
+        <!-- STATISTICS VIEW -->
+        <section id="view-statistics" class="view-section flex-row h-full">
+            <!-- Sidebar -->
+            <div class="w-72 bg-soft-surface shadow-md z-10 p-5 flex flex-col gap-4 overflow-y-auto border-r border-soft-border shrink-0">
+                <!-- Chart type tabs -->
+                <div class="flex bg-soft-bg rounded-xl p-1 gap-1">
+                    <button onclick="setChartType('bar')" id="tab-bar" class="chart-tab active flex-1 py-2 rounded-lg text-xs font-bold text-soft-muted text-center">
+                        <i class="fas fa-chart-bar block text-lg mb-1"></i>Stapel
+                    </button>
+                    <button onclick="setChartType('line')" id="tab-line" class="chart-tab flex-1 py-2 rounded-lg text-xs font-bold text-soft-muted text-center">
+                        <i class="fas fa-chart-line block text-lg mb-1"></i>Linje
+                    </button>
+                    <button onclick="setChartType('pie')" id="tab-pie" class="chart-tab flex-1 py-2 rounded-lg text-xs font-bold text-soft-muted text-center">
+                        <i class="fas fa-chart-pie block text-lg mb-1"></i>Cirkel
+                    </button>
+                </div>
+
+                <!-- Chart title -->
+                <div>
+                    <label class="text-xs font-bold text-soft-muted uppercase tracking-wider">Diagramtitel</label>
+                    <input id="chart-title-input" type="text" value="Mitt diagram" class="mt-1 w-full border border-soft-border rounded-lg px-3 py-2 text-sm text-soft-text bg-soft-bg focus:outline-none focus:border-soft-blue font-semibold" oninput="renderChart()">
+                </div>
+
+                <!-- Data rows -->
+                <div>
+                    <label class="text-xs font-bold text-soft-muted uppercase tracking-wider">Data</label>
+                    <div id="stat-rows" class="mt-2 flex flex-col gap-2"></div>
+                </div>
+
+                <div class="flex gap-2">
+                    <button onclick="addStatRow()" class="flex-1 bg-soft-tealLight/20 hover:bg-soft-tealLight/40 text-soft-teal border border-soft-tealLight/40 p-2 rounded-lg text-sm font-bold"><i class="fas fa-plus mr-1"></i> Lägg till rad</button>
+                    <button onclick="removeLastStatRow()" class="bg-soft-pinkLight/20 hover:bg-soft-pinkLight/40 text-soft-pink border border-soft-pinkLight/40 p-2 rounded-lg text-sm font-bold px-3"><i class="fas fa-minus"></i></button>
+                </div>
+
+                <!-- Bar-specific: show values toggle -->
+                <div id="bar-options" class="flex flex-col gap-3">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="show-values" checked onchange="renderChart()" class="rounded">
+                        <span class="text-sm text-soft-text font-semibold">Visa värden</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="show-grid" checked onchange="renderChart()" class="rounded">
+                        <span class="text-sm text-soft-text font-semibold">Visa rutnät</span>
+                    </label>
+                </div>
+
+                <div class="p-3 bg-soft-tealLight/15 rounded-xl text-xs text-soft-teal border border-soft-tealLight/30 mt-auto">
+                    <i class="fas fa-lightbulb mr-1"></i>
+                    <span id="chart-tip">Dra i staplarna uppåt/nedåt för att ändra värdet direkt i diagrammet!</span>
+                </div>
+            </div>
+
+            <!-- Chart canvas area -->
+            <div class="flex-1 flex flex-col bg-soft-bg overflow-hidden">
+                <div class="flex-1 flex items-center justify-center p-6 overflow-auto">
+                    <div class="bg-white rounded-2xl shadow-lg border border-soft-border w-full max-w-3xl" style="min-height: 420px;">
+                        <svg id="stat-chart" width="100%" style="min-height:420px;display:block;"></svg>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+    // ===================== GLOBAL =====================
+    let currentView = 'home';
+    let selectedItem = null;
+    let zIndexCounter = 100;
+    let isDragging = false;
+    let dragTarget = null;
+    let startX, startY, initialX, initialY;
+
+    function initApp() {
+        initFractionButtons();
+        setNumberLine(0,10,1);
+        initClock();
+        initTenFriends();
+        initStats();
+        document.addEventListener('pointermove', onPointerMove);
+        document.addEventListener('pointerup', onPointerUp);
+        document.addEventListener('pointercancel', onPointerUp);
+    }
+
+    function switchView(viewId) {
+        if(currentView==='counting' && viewId!=='counting') document.querySelectorAll('.ten-friend-item').forEach(e=>e.remove());
+        document.querySelectorAll('.view-section').forEach(el=>el.classList.remove('active'));
+        document.getElementById(`view-${viewId}`).classList.add('active');
+        const btnHome = document.getElementById('btn-home');
+        const title = document.getElementById('app-title');
+        if (viewId==='home') {
+            btnHome.classList.add('hidden');
+            title.innerHTML = `<i class="fas fa-shapes text-soft-blue mr-2"></i> Matematikutforskaren`;
+            cleanup3D();
+        } else {
+            btnHome.classList.remove('hidden');
+            const titles = {fractions:'Bråk',numberlines:'Tallinjer',geometry:'Geometriska objekt',counting:'Räkning',clock:'Klockan',statistics:'Statistik'};
+            title.innerText = titles[viewId];
+            // 3D is now handled per-card, no global init needed
+            if (viewId==='counting') setTimeout(()=>{ if(countingMode==='friends') initTenFriends(); else buildMathGrid(countingMode==='multiplication'); },100);
+            if (viewId==='statistics') setTimeout(renderChart, 50);
+            if (viewId==='clock') setTimeout(initClockDragIfNeeded, 50);
+        }
+        currentView = viewId;
+    }
+
+    document.getElementById('btn-home').addEventListener('click',()=>{ document.querySelectorAll('.ten-friend-item').forEach(e=>e.remove()); });
+
+    // ===================== DRAG ENGINE =====================
+    // Geo 2D shapes use left/top + scale(s) only (no translate, avoids origin issues)
+    window.updateTransform = function(el) {
+        const x=parseFloat(el.dataset.x)||0, y=parseFloat(el.dataset.y)||0;
+        const rot=parseFloat(el.dataset.rot)||0, s=parseFloat(el.dataset.scale)||1;
+        el.style.left = x + 'px';
+        el.style.top  = y + 'px';
+        el.style.transform = `rotate(${rot}deg) scale(${s})`;
+    };
+    function updateTransform(el) { window.updateTransform(el); }
+
+    function makeDraggable(element, workspaceId, onDragEndCallback=null) {
+        element.classList.add('draggable-item');
+        if (element.dataset.x === undefined || element.dataset.x === '') element.dataset.x = 0;
+        if (element.dataset.y === undefined || element.dataset.y === '') element.dataset.y = 0;
+        if (!element.dataset.rot) element.dataset.rot = 0;
+        window.updateTransform(element);
+
+        let _startX, _startY, _initX, _initY;
+        element.addEventListener('pointerdown',(e)=>{
+            if(e.button!==0 && e.type!=='touchstart') return;
+            if(e.target.classList && (e.target.classList.contains('geo-resize-handle') || e.target.classList.contains('frac-resize-handle'))) return;
+            isDragging=true; dragTarget=element;
+            if(selectedItem && selectedItem!==element) selectedItem.classList.remove('selected');
+            selectedItem=element; element.classList.add('selected');
+            element.style.zIndex = ++zIndexCounter;
+            _startX=e.clientX; _startY=e.clientY;
+            _initX=parseFloat(element.dataset.x)||0; _initY=parseFloat(element.dataset.y)||0;
+            element.setPointerCapture(e.pointerId); e.preventDefault();
+        });
+        element.addEventListener('pointermove',(e)=>{
+            if(!isDragging||dragTarget!==element) return;
+            element.dataset.x = _initX+(e.clientX-_startX);
+            element.dataset.y = _initY+(e.clientY-_startY);
+            window.updateTransform(element);
+        });
+        element.addEventListener('pointerup',(e)=>{
+            if(!isDragging||dragTarget!==element) return;
+            if(element.hasPointerCapture(e.pointerId)) element.releasePointerCapture(e.pointerId);
+            if(element.onDragEndCallback) element.onDragEndCallback(element);
+            isDragging=false; dragTarget=null;
+        });
+        element.onDragEndCallback = onDragEndCallback;
+    }
+    function onPointerMove(e) {}
+    function onPointerUp(e) {}
+    function rotateSelectedPiece(deg) { if(selectedItem){ selectedItem.dataset.rot=(parseFloat(selectedItem.dataset.rot)||0)+deg; updateTransform(selectedItem); } }
+    function deleteSelectedPiece() { if(selectedItem&&selectedItem.parentNode){ selectedItem.parentNode.removeChild(selectedItem); selectedItem=null; } }
+    function clearWorkspace(wsId) { document.getElementById(wsId).querySelectorAll('.draggable-item').forEach(i=>i.remove()); selectedItem=null; }
+
+    // ===================== FRACTIONS =====================
+    const FRAC_DEFS = [
+        {d:1,  color:'#6a6281', label:'Hel (1/1)'},
+        {d:2,  color:'#a85c72', label:'Halvor (1/2)'},
+        {d:3,  color:'#5b80a5', label:'Tredjedelar (1/3)'},
+        {d:4,  color:'#4f7c75', label:'Fjärdedelar (1/4)'},
+        {d:5,  color:'#dec894', label:'Femtedelar (1/5)'},
+        {d:6,  color:'#8db1d1', label:'Sjättedelar (1/6)'},
+        {d:8,  color:'#8bb39c', label:'Åttondelar (1/8)'},
+        {d:10, color:'#d58b99', label:'Tiondelar (1/10)'},
+        {d:12, color:'#938db3', label:'Tolftedelar (1/12)'},
+    ];
+    const FRAC_R = 72;
+    const FRAC_SVG = FRAC_R * 2 + 8;
+
+    // Single global frac drag state (mode: 'move' | 'resize')
+    let fracDrag = null;
+
+    function fracOnMove(e) {
+        if (!fracDrag || fracDrag.pointerId !== e.pointerId) return;
+        if (fracDrag.mode === 'resize') {
+            const el = fracDrag.el;
+            const dx = e.clientX - fracDrag.sx;
+            const dy = e.clientY - fracDrag.sy;
+            const delta = (Math.abs(dx) > Math.abs(dy) ? dx : dy);
+            const newScale = Math.max(0.4, Math.min(4, fracDrag.startScale + delta / FRAC_SVG));
+            el.dataset.scale = newScale;
+            applyFracTransform(el);
+        } else {
+            const nx = fracDrag.ox + (e.clientX - fracDrag.sx);
+            const ny = fracDrag.oy + (e.clientY - fracDrag.sy);
+            fracDrag.el.dataset.x = nx;
+            fracDrag.el.dataset.y = ny;
+            applyFracTransform(fracDrag.el);
+        }
+    }
+
+    function fracOnUp(e) {
+        if (!fracDrag || fracDrag.pointerId !== e.pointerId) return;
+        if (fracDrag.mode !== 'resize') fracDrag.el.style.cursor = 'grab';
+        fracDrag = null;
+    }
+
+    function fracStartDrag(el, e) {
+        el.style.zIndex = ++zIndexCounter;
+        el.style.cursor = 'grabbing';
+        fracDrag = {
+            el, mode: 'move',
+            ox: parseFloat(el.dataset.x) || 0,
+            oy: parseFloat(el.dataset.y) || 0,
+            sx: e.clientX, sy: e.clientY,
+            pointerId: e.pointerId
+        };
+    }
+
+    function applyFracTransform(el) {
+        const x = parseFloat(el.dataset.x) || 0;
+        const y = parseFloat(el.dataset.y) || 0;
+        const s = parseFloat(el.dataset.scale) || 1;
+        el.style.left = x + 'px';
+        el.style.top  = y + 'px';
+        el.style.transform = 'scale(' + s + ')';
+        el.style.transformOrigin = 'top left';
+    }
+
+    function addResizeHandle(el) {
+        const handle = document.createElement('div');
+        handle.style.cssText = 'position:absolute;bottom:-4px;right:-4px;width:22px;height:22px;background:white;border:2px solid #8c8d92;border-radius:5px;cursor:nwse-resize;display:flex;align-items:center;justify-content:center;font-size:15px;color:#4a4b50;user-select:none;touch-action:none;z-index:10;opacity:0.9;font-weight:900;box-shadow:0 2px 6px rgba(0,0,0,0.15);';
+        handle.textContent = '\u231f';
+        handle.addEventListener('pointerdown', (e) => {
+            if (e.button !== 0) return;
+            e.preventDefault();
+            e.stopPropagation();
+            el.style.zIndex = ++zIndexCounter;
+            fracDrag = {
+                el, mode: 'resize',
+                startScale: parseFloat(el.dataset.scale) || 1,
+                sx: e.clientX, sy: e.clientY,
+                pointerId: e.pointerId
+            };
+        });
+        el.appendChild(handle);
+    }
+
+    function initFractionButtons() {
+        const container = document.getElementById('fraction-buttons');
+        container.innerHTML = '';
+        FRAC_DEFS.forEach(f => {
+            const btn = document.createElement('button');
+            btn.className = 'flex items-center gap-3 w-full px-3 py-2.5 rounded-xl border border-soft-border bg-soft-bg hover:bg-white hover:shadow-sm transition-all text-left';
+            const ps = 28, pr = ps/2 - 2;
+            let prev = '';
+            if (f.d === 1) {
+                prev = `<circle cx="${ps/2}" cy="${ps/2}" r="${pr}" fill="${f.color}"/>`;
+            } else {
+                const a = 360/f.d;
+                prev = `<circle cx="${ps/2}" cy="${ps/2}" r="${pr}" fill="${f.color}" opacity="0.25"/>`;
+                for (let i=0; i<f.d; i++) {
+                    const p1 = fracPolarXY(ps/2, ps/2, pr, i*a);
+                    const p2 = fracPolarXY(ps/2, ps/2, pr, (i+1)*a);
+                    prev += `<path d="M${ps/2},${ps/2} L${p1.x},${p1.y} A${pr},${pr},0,${a>180?1:0},1,${p2.x},${p2.y}Z" fill="${f.color}" stroke="white" stroke-width="0.8"/>`;
+                }
+            }
+            btn.innerHTML = `
+                <svg width="${ps}" height="${ps}" viewBox="0 0 ${ps} ${ps}" class="shrink-0 drop-shadow-sm">${prev}</svg>
+                <div>
+                    <div class="text-sm font-bold text-soft-text">${f.label}</div>
+                    <div class="text-xs text-soft-muted">Klicka för att lägga till</div>
+                </div>`;
+            btn.onclick = () => addFractionCircle(f.d, f.color);
+            container.appendChild(btn);
+        });
+
+        // Global pointer handlers for ALL fraction dragging
+        const ws = document.getElementById('workspace-fractions');
+        ws.addEventListener('pointermove', fracOnMove);
+        ws.addEventListener('pointerup',   fracOnUp);
+        ws.addEventListener('pointercancel', fracOnUp);
+        // Also catch moves that escape the workspace
+        document.addEventListener('pointermove', fracOnMove);
+        document.addEventListener('pointerup',   fracOnUp);
+        document.addEventListener('pointercancel', fracOnUp);
+    }
+
+    function fracPolarXY(cx, cy, r, deg) {
+        const rad = (deg - 90) * Math.PI / 180;
+        return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+    }
+
+    function buildCircleSVG(d, color) {
+        const cx = FRAC_R + 4, cy = FRAC_R + 4, r = FRAC_R;
+        const textColor = (color === '#dec894') ? '#5a4a1a' : '#ffffff';
+        const angleStep = 360 / d;
+        let paths = '';
+        if (d === 1) {
+            paths  = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}" stroke="white" stroke-width="2.5"/>`;
+            paths += `<text x="${cx}" y="${cy+8}" text-anchor="middle" font-family="Nunito,sans-serif" font-size="22" font-weight="800" fill="${textColor}">1</text>`;
+        } else {
+            for (let i = 0; i < d; i++) {
+                const startA = i * angleStep, endA = startA + angleStep;
+                const p1 = fracPolarXY(cx, cy, r, startA);
+                const p2 = fracPolarXY(cx, cy, r, endA);
+                const lg = angleStep > 180 ? 1 : 0;
+                paths += `<path d="M${cx},${cy} L${p1.x},${p1.y} A${r},${r},0,${lg},1,${p2.x},${p2.y}Z" fill="${color}" stroke="white" stroke-width="2.5" data-slice="${i}" class="frac-slice"/>`;
+                const lp = fracPolarXY(cx, cy, r * 0.62, startA + angleStep/2);
+                const fs = d <= 4 ? 16 : d <= 8 ? 13 : 11;
+                paths += `<text x="${lp.x}" y="${lp.y+fs*0.35}" text-anchor="middle" font-family="Nunito,sans-serif" font-size="${fs}" font-weight="800" fill="${textColor}" pointer-events="none">1/${d}</text>`;
+            }
+        }
+        return `<svg width="${FRAC_SVG}" height="${FRAC_SVG}" viewBox="0 0 ${FRAC_SVG} ${FRAC_SVG}" style="overflow:visible;display:block;">${paths}</svg>`;
+    }
+
+    function makeFracElement(el, x, y) {
+        el.className = 'frac-piece';
+        el.style.cssText = `position:absolute;left:${x}px;top:${y}px;width:${FRAC_SVG}px;height:${FRAC_SVG}px;cursor:grab;user-select:none;touch-action:none;filter:drop-shadow(0 4px 10px rgba(74,75,80,0.2));z-index:${++zIndexCounter};transform-origin:top left;`;
+        el.dataset.x = x;
+        el.dataset.y = y;
+        el.dataset.scale = 1;
+    }
+
+    function addFracDragListener(el) {
+        el.addEventListener('pointerdown', (e) => {
+            if (e.button !== 0) return;
+            // Check if this is a slice pointerdown — handled by slice logic instead
+            if (el.dataset.isSliceSource === 'true') return;
+            e.preventDefault();
+            e.stopPropagation();
+            fracStartDrag(el, e);
+        });
+    }
+
+    function addFractionCircle(d, color) {
+        const ws = document.getElementById('workspace-fractions');
+        const x = ws.clientWidth/2 - FRAC_SVG/2 + (Math.random()*80 - 40);
+        const y = ws.clientHeight - FRAC_SVG - 24 + (Math.random()*30 - 15);
+
+        const wrapper = document.createElement('div');
+        makeFracElement(wrapper, x, y);
+        wrapper.dataset.d = d;
+        wrapper.dataset.color = color;
+        wrapper.innerHTML = buildCircleSVG(d, color);
+        ws.appendChild(wrapper);
+        addResizeHandle(wrapper);
+
+        if (d === 1) {
+            // Whole circle — just drag the whole thing
+            addFracDragListener(wrapper);
+        } else {
+            // Drag circle body (non-slice area) moves the whole circle
+            wrapper.addEventListener('pointerdown', (e) => {
+                if (e.button !== 0) return;
+                if (e.target.classList.contains('frac-slice')) return; // slices handle themselves
+                e.preventDefault();
+                e.stopPropagation();
+                fracStartDrag(wrapper, e);
+            });
+
+            // Each slice can be pulled out
+            const slices = wrapper.querySelectorAll('.frac-slice');
+            slices.forEach((slice, i) => {
+                let sliceDownX, sliceDownY, pulled = false, looseEl = null;
+
+                slice.addEventListener('pointerdown', (e) => {
+                    if (e.button !== 0) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    sliceDownX = e.clientX;
+                    sliceDownY = e.clientY;
+                    pulled = false;
+                    looseEl = null;
+
+                    // Temporarily listen on the document for this pointer
+                    function onSliceMove(ev) {
+                        if (ev.pointerId !== e.pointerId) return;
+                        const dx = ev.clientX - sliceDownX;
+                        const dy = ev.clientY - sliceDownY;
+                        const dist = Math.sqrt(dx*dx + dy*dy);
+
+                        if (!pulled && dist > 10) {
+                            pulled = true;
+                            // Spawn loose slice at current pointer position
+                            looseEl = spawnLooseSlice(d, i, color, ev.clientX, ev.clientY, ws);
+                            // Hand off to global frac drag
+                            fracStartDrag(looseEl, ev);
+                        }
+                        // Once pulled, global fracOnMove handles movement
+                    }
+
+                    function onSliceUp(ev) {
+                        if (ev.pointerId !== e.pointerId) return;
+                        document.removeEventListener('pointermove', onSliceMove);
+                        document.removeEventListener('pointerup',   onSliceUp);
+                        document.removeEventListener('pointercancel', onSliceUp);
+                        // If never pulled far enough, treat as tap (no-op)
+                        if (!pulled) {
+                            fracDrag = null;
+                        }
+                    }
+
+                    document.addEventListener('pointermove', onSliceMove);
+                    document.addEventListener('pointerup',   onSliceUp);
+                    document.addEventListener('pointercancel', onSliceUp);
+                });
+            });
+        }
+    }
+
+    function spawnLooseSlice(d, sliceIndex, color, clientX, clientY, ws) {
+        const wsRect = ws.getBoundingClientRect();
+        const cx = FRAC_R + 4, cy = FRAC_R + 4, r = FRAC_R;
+        const textColor = (color === '#dec894') ? '#5a4a1a' : '#ffffff';
+        const angleStep = 360 / d;
+        const startA = sliceIndex * angleStep;
+        const p1 = fracPolarXY(cx, cy, r, startA);
+        const p2 = fracPolarXY(cx, cy, r, startA + angleStep);
+        const lg = angleStep > 180 ? 1 : 0;
+        const lp = fracPolarXY(cx, cy, r * 0.62, startA + angleStep/2);
+        const fs = d <= 4 ? 16 : d <= 8 ? 13 : 11;
+
+        const svg = `<svg width="${FRAC_SVG}" height="${FRAC_SVG}" viewBox="0 0 ${FRAC_SVG} ${FRAC_SVG}" style="overflow:visible;display:block;">
+            <path d="M${cx},${cy} L${p1.x},${p1.y} A${r},${r},0,${lg},1,${p2.x},${p2.y}Z" fill="${color}" stroke="white" stroke-width="2.5"/>
+            <text x="${lp.x}" y="${lp.y+fs*0.35}" text-anchor="middle" font-family="Nunito,sans-serif" font-size="${fs}" font-weight="800" fill="${textColor}" pointer-events="none">1/${d}</text>
+        </svg>`;
+
+        const el = document.createElement('div');
+        const nx = clientX - wsRect.left - FRAC_SVG/2;
+        const ny = clientY - wsRect.top  - FRAC_SVG/2;
+        makeFracElement(el, nx, ny);
+        el.innerHTML = svg;
+        ws.appendChild(el);
+
+        // Loose slice gets normal drag on subsequent pointerdown
+        addFracDragListener(el);
+        addResizeHandle(el);
+        return el;
+    }
+
+    function clearFractionWorkspace() {
+        const ws = document.getElementById('workspace-fractions');
+        ws.querySelectorAll('.frac-piece').forEach(el => el.remove());
+        fracDrag = null;
+    }
+
+
+    // ===================== NUMBER LINES =====================
+    let nlState = null; // current number line state
+
+    function setNumberLine(min, max, step, showDecimals=false) {
+        nlState = {min, max, step, showDecimals};
+        const container = document.getElementById('numberline-container');
+        container.innerHTML = '';
+
+        const W = 860, H = 120, lineY = 62, pad = 50;
+        const numTicks = Math.round((max - min) / step);
+        const pxPerTick = (W - 2*pad) / numTicks;
+        const markerSize = 44;
+
+        // SVG
+        const svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
+        svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+        svg.setAttribute("class", "w-full drop-shadow-sm");
+        svg.style.cssText = "overflow:visible;display:block;flex-shrink:0;";
+
+        // Arrow line
+        const arrow = document.createElementNS("http://www.w3.org/2000/svg","line");
+        arrow.setAttribute("x1", pad-10); arrow.setAttribute("y1", lineY);
+        arrow.setAttribute("x2", W-pad+10); arrow.setAttribute("y2", lineY);
+        arrow.setAttribute("stroke","#4a4b50"); arrow.setAttribute("stroke-width","4");
+        arrow.setAttribute("marker-end","url(#arrow)"); svg.appendChild(arrow);
+
+        // Arrowhead marker def
+        const defs = document.createElementNS("http://www.w3.org/2000/svg","defs");
+        defs.innerHTML = `<marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 Z" fill="#4a4b50"/></marker>`;
+        svg.appendChild(defs);
+
+        // Ticks and labels
+        for (let i = 0; i <= numTicks; i++) {
+            const val = parseFloat((min + i*step).toFixed(10));
+            const x = pad + i * pxPerTick;
+            // For dense lines (many ticks), only label at intervals that fit
+            let isMajor;
+            if (showDecimals) {
+                isMajor = true; // label every tick for decimals
+            } else if (numTicks > 20) {
+                isMajor = val % 10 === 0; // 0-100: label every 10
+            } else if (numTicks > 10) {
+                isMajor = val % 5 === 0;  // label every 5
+            } else {
+                isMajor = true;            // 0-10: label every 1
+            }
+            const tickH = isMajor ? 14 : 8;
+
+            const tick = document.createElementNS("http://www.w3.org/2000/svg","line");
+            tick.setAttribute("x1", x); tick.setAttribute("y1", lineY - tickH);
+            tick.setAttribute("x2", x); tick.setAttribute("y2", lineY + tickH);
+            tick.setAttribute("stroke","#4a4b50");
+            tick.setAttribute("stroke-width", isMajor ? "2.5" : "1.5");
+            svg.appendChild(tick);
+
+            if (isMajor) {
+                const txt = document.createElementNS("http://www.w3.org/2000/svg","text");
+                txt.setAttribute("x", x); txt.setAttribute("y", lineY + 34);
+                txt.setAttribute("text-anchor","middle");
+                txt.setAttribute("font-family","Nunito,sans-serif");
+                txt.setAttribute("font-weight","bold");
+                txt.setAttribute("font-size", showDecimals ? "13" : "15");
+                txt.setAttribute("fill","#4a4b50");
+                txt.textContent = showDecimals ? val.toFixed(1).replace('.',',') : val;
+                svg.appendChild(txt);
+            }
+        }
+
+        container.appendChild(svg);
+
+        // Display box — shows current value, previous value, and delta
+        const display = document.createElement('div');
+        display.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:12px;';
+        display.innerHTML = `
+            <div style="display:flex;align-items:center;gap:12px;">
+                <div id="nl-display" style="font-family:Nunito,sans-serif;font-size:2rem;font-weight:900;color:#1a2e5a;background:#f0f3f8;border:2px solid #8db1d1;border-radius:14px;padding:6px 22px;min-width:90px;text-align:center;">0</div>
+            </div>
+            <div id="nl-delta" style="font-family:Nunito,sans-serif;font-size:1rem;font-weight:700;color:#4f7c75;min-height:1.4rem;"></div>
+        `;
+        container.appendChild(display);
+
+        // Arrow marker (points down to the number line)
+        const marker = document.createElement('div');
+        marker.style.cssText = `position:absolute;width:${markerSize}px;top:0;left:0;cursor:grab;user-select:none;touch-action:none;display:flex;flex-direction:column;align-items:center;`;
+        marker.innerHTML = `
+            <div style="background:#1a2e5a;color:white;font-family:Nunito,sans-serif;font-size:13px;font-weight:900;padding:3px 8px;border-radius:8px;box-shadow:0 3px 10px rgba(26,46,90,0.35);white-space:nowrap;" id="nl-arrow-label">0</div>
+            <div style="width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-top:12px solid #1a2e5a;margin-top:-1px;filter:drop-shadow(0 2px 3px rgba(26,46,90,0.2));"></div>
+        `;
+        container.appendChild(marker);
+
+        // Position helpers — convert between value and pixel x within container
+        function valToContainerX(val) {
+            const svgEl = container.querySelector('svg');
+            const svgRect = svgEl.getBoundingClientRect();
+            const conRect = container.getBoundingClientRect();
+            const svgOffsetX = svgRect.left - conRect.left;
+            const ratio = svgRect.width / W;
+            return svgOffsetX + (pad + ((val - min)/step) * pxPerTick) * ratio - markerSize/2;
+        }
+
+        function containerXToVal(px) {
+            const svgEl = container.querySelector('svg');
+            const svgRect = svgEl.getBoundingClientRect();
+            const conRect = container.getBoundingClientRect();
+            const svgOffsetX = svgRect.left - conRect.left;
+            const ratio = svgRect.width / W;
+            const raw = (px + markerSize/2 - svgOffsetX) / ratio;
+            const tickIndex = Math.round((raw - pad) / pxPerTick);
+            const clamped = Math.max(0, Math.min(numTicks, tickIndex));
+            return parseFloat((min + clamped * step).toFixed(10));
+        }
+
+        let currentVal = min;
+        let prevVal = null;
+
+        function updateDisplay(val, snap=true) {
+            const snappedVal = snap ? containerXToVal(valToContainerX(val) + markerSize/2 - markerSize/2) : val;
+            const dispX = valToContainerX(snappedVal);
+            marker.style.left = dispX + 'px';
+            // Vertically centre on the line: SVG is display:block, lineY/H ratio
+            const svgEl = container.querySelector('svg');
+            const svgRect = svgEl.getBoundingClientRect();
+            const topOffset = svgRect.top - container.getBoundingClientRect().top;
+            // Arrow: label (~26px) + triangle (12px) = ~38px total, tip touches lineY
+            const arrowH = 38;
+            marker.style.top = (topOffset + (lineY / H) * svgRect.height - arrowH) + 'px';
+
+            const dispEl = document.getElementById('nl-display');
+            const arrowLabel = document.getElementById('nl-arrow-label');
+            const deltaEl = document.getElementById('nl-delta');
+            const valStr = showDecimals ? snappedVal.toFixed(1).replace('.',',') : snappedVal;
+            if (dispEl) dispEl.textContent = valStr;
+            if (arrowLabel) arrowLabel.textContent = valStr;
+            if (deltaEl && prevVal !== null && snappedVal !== prevVal) {
+                const diff = parseFloat((snappedVal - prevVal).toFixed(10));
+                const sign = diff > 0 ? '+' : '';
+                const diffStr = showDecimals ? diff.toFixed(1).replace('.',',') : diff;
+                deltaEl.textContent = `${prevVal} ${diff>0?'→':'←'} ${snappedVal}  (${sign}${diffStr})`;
+                deltaEl.style.color = diff > 0 ? '#4f7c75' : '#a85c72';
+            } else if (deltaEl && prevVal === null) {
+                deltaEl.textContent = '';
+            }
+            currentVal = snappedVal;
+        }
+
+        // Drag the frog
+        let dragging = false, dragStartX, markerStartLeft;
+        marker.addEventListener('pointerdown', (e) => {
+            dragging = true;
+            dragStartX = e.clientX;
+            markerStartLeft = parseFloat(marker.style.left) || 0;
+            prevVal = currentVal;
+            marker.setPointerCapture(e.pointerId);
+            marker.style.cursor = 'grabbing';
+            e.preventDefault();
+        });
+        marker.addEventListener('pointermove', (e) => {
+            if (!dragging) return;
+            const newLeft = markerStartLeft + (e.clientX - dragStartX);
+            // Move freely while dragging, snap on release
+            const rawVal = containerXToVal(newLeft);
+            marker.style.left = valToContainerX(rawVal) + 'px';
+            // Update display without delta while dragging
+            const dispEl = document.getElementById('nl-display');
+            const arrowLbl = document.getElementById('nl-arrow-label');
+            const liveStr = showDecimals ? rawVal.toFixed(1).replace('.',',') : rawVal;
+            if (dispEl) dispEl.textContent = liveStr;
+            if (arrowLbl) arrowLbl.textContent = liveStr;
+            currentVal = rawVal;
+        });
+        marker.addEventListener('pointerup', (e) => {
+            dragging = false;
+            marker.style.cursor = 'grab';
+            marker.releasePointerCapture(e.pointerId);
+            updateDisplay(currentVal);
+        });
+
+        // Initial placement after layout
+        setTimeout(() => {
+            updateDisplay(min);
+            prevVal = null;
+            const deltaEl = document.getElementById('nl-delta');
+            if (deltaEl) deltaEl.textContent = '';
+        }, 80);
+    }
+
+    // ===================== GEOMETRY =====================
+    // Track all independent 3D scenes (one per card)
+    let geo3DCards = []; // [{el, scene, camera, renderer, mesh, animId, isDragging, prevX, prevY}]
+
+    // --- 2D shapes ---
+    function add2DShape(type) {
+        const ws = document.getElementById('workspace-geometry');
+        const size = 120;
+        const x = ws.clientWidth / 2 - size / 2 + (Math.random() * 60 - 30);
+        const y = ws.clientHeight - size - 20 + (Math.random() * 30 - 15);
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = `position:absolute;left:0;top:0;width:${size}px;height:${size}px;transform-origin:center center;`;
+        wrapper.dataset.x = x; wrapper.dataset.y = y; wrapper.dataset.rot = 0; wrapper.dataset.scale = 1;
+        let s = '';
+        if (type === 'square')        s = `<rect x="10" y="10" width="100" height="100" fill="#8bb39c" stroke="#4f7c75" stroke-width="4"/>`;
+        else if (type === 'circle')   s = `<circle cx="60" cy="60" r="50" fill="#d58b99" stroke="#a85c72" stroke-width="4"/>`;
+        else if (type === 'triangle') s = `<polygon points="60,10 110,100 10,100" fill="#dec894" stroke="#b8a36e" stroke-width="4" stroke-linejoin="round"/>`;
+        else if (type === 'rectangle')s = `<rect x="5" y="25" width="110" height="70" fill="#8db1d1" stroke="#5b80a5" stroke-width="4"/>`;
+        else if (type === 'pentagon') { const pts=Array.from({length:5},(_,i)=>{const a=(i*72-90)*Math.PI/180;return `${60+50*Math.cos(a)},${60+50*Math.sin(a)}`;}).join(' '); s=`<polygon points="${pts}" fill="#dec894" stroke="#b8a36e" stroke-width="4"/>`; }
+        else if (type === 'hexagon')  { const pts=Array.from({length:6},(_,i)=>{const a=(i*60-90)*Math.PI/180;return `${60+50*Math.cos(a)},${60+50*Math.sin(a)}`;}).join(' '); s=`<polygon points="${pts}" fill="#8bb39c" stroke="#4f7c75" stroke-width="4"/>`; }
+        else if (type === 'rhombus')  s = `<polygon points="60,8 110,60 60,112 10,60" fill="#dec894" stroke="#b8a36e" stroke-width="4"/>`;
+        else if (type === 'parallelogram') s = `<polygon points="25,100 5,20 95,20 115,100" fill="#8db1d1" stroke="#5b80a5" stroke-width="4"/>`;
+        wrapper.innerHTML = `<svg width="${size}" height="${size}" viewBox="0 0 120 120">${s}</svg>`;
+        ws.appendChild(wrapper);
+        addGeoResizeHandle(wrapper);
+        makeDraggable(wrapper, 'workspace-geometry');
+    }
+
+    function addGeoResizeHandle(el) {
+        const handle = document.createElement('div');
+        handle.className = 'geo-resize-handle';
+        handle.textContent = '⌟';
+        let resizing = false, startScale, startDist, pointerId;
+        handle.addEventListener('pointerdown', (e) => {
+            if (e.button !== 0) return;
+            e.preventDefault(); e.stopPropagation();
+            resizing = true; pointerId = e.pointerId;
+            startScale = parseFloat(el.dataset.scale) || 1;
+            startDist = e.clientX;
+            const baseSize = parseFloat(el.style.width) || 120;
+            function onMove(ev) {
+                if (ev.pointerId !== pointerId) return;
+                const delta = ev.clientX - startDist;
+                const newScale = Math.max(0.3, Math.min(5, startScale + delta / baseSize));
+                el.dataset.scale = newScale;
+                window.updateTransform(el);
+            }
+            function onUp(ev) {
+                if (ev.pointerId !== pointerId) return;
+                document.removeEventListener('pointermove', onMove);
+                document.removeEventListener('pointerup', onUp);
+            }
+            document.addEventListener('pointermove', onMove);
+            document.addEventListener('pointerup', onUp);
+        });
+        el.appendChild(handle);
+    }
+
+    // updateTransform now handles scale natively via window.updateTransform
+
+    // --- 3D cards (independent mini Three.js scenes) ---
+    function add3DCard(type) {
+        const ws = document.getElementById('workspace-geometry');
+        const cardSize = 260;
+        const x = ws.clientWidth / 2 - cardSize / 2 + (Math.random() * 80 - 40);
+        const y = ws.clientHeight - cardSize - 20 + (Math.random() * 30 - 15);
+
+        const card = document.createElement('div');
+        card.className = 'geo-3d-card';
+        card.style.cssText = `width:${cardSize}px;height:${cardSize}px;left:0;top:0;position:absolute;transform-origin:top left;`;
+        card.dataset.x = x; card.dataset.y = y; card.dataset.scale = 1;
+
+        // Label
+        const label = document.createElement('div');
+        const names = {cylinder:'Cylinder',cube:'Kub',cuboid:'Rätblock',sphere:'Klot',pyramid:'Pyramid',cone:'Kon'};
+        label.style.cssText = 'position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:11px;font-weight:800;color:#4a4b50;font-family:Nunito,sans-serif;z-index:2;pointer-events:none;';
+        label.textContent = names[type] || type;
+        card.appendChild(label);
+
+        ws.appendChild(card);
+
+        // Three.js mini scene
+        const state = initMini3D(card, type, cardSize);
+        geo3DCards.push(state);
+
+        // Drag bar at top of card — grab here to move the card
+        const dragBar = document.createElement('div');
+        dragBar.style.cssText = 'position:absolute;top:0;left:0;right:0;height:22px;background:rgba(74,75,80,0.08);cursor:grab;z-index:5;border-radius:10px 10px 0 0;display:flex;align-items:center;justify-content:center;';
+        dragBar.innerHTML = '<div style="width:28px;height:3px;border-radius:2px;background:rgba(74,75,80,0.25);"></div>';
+        card.appendChild(dragBar);
+
+        let dragging = false, ox, oy, sx, sy, pid;
+        dragBar.addEventListener('pointerdown', (e) => {
+            if (e.button !== 0) return;
+            e.preventDefault(); e.stopPropagation();
+            dragging = true; pid = e.pointerId;
+            dragBar.style.cursor = 'grabbing';
+            ox = parseFloat(card.dataset.x)||0; oy = parseFloat(card.dataset.y)||0;
+            sx = e.clientX; sy = e.clientY;
+            card.style.zIndex = ++zIndexCounter;
+            dragBar.setPointerCapture(e.pointerId);
+        });
+        dragBar.addEventListener('pointermove', (e) => {
+            if (!dragging || e.pointerId !== pid) return;
+            card.dataset.x = ox + (e.clientX - sx);
+            card.dataset.y = oy + (e.clientY - sy);
+            applyCardTransform(card);
+        });
+        dragBar.addEventListener('pointerup', (e) => {
+            if (e.pointerId !== pid) return;
+            dragging = false; dragBar.style.cursor = 'grab';
+            dragBar.releasePointerCapture(e.pointerId);
+        });
+
+        // Resize handle
+        const rh = document.createElement('div');
+        rh.className = 'geo-resize-handle';
+        rh.textContent = '⌟';
+        let rs = false, rStart, rScale, rPid;
+        rh.addEventListener('pointerdown', (e) => {
+            if (e.button !== 0) return;
+            e.preventDefault(); e.stopPropagation();
+            rs = true; rPid = e.pointerId;
+            rStart = e.clientX; rScale = parseFloat(card.dataset.scale)||1;
+            function onMove(ev) {
+                if (ev.pointerId !== rPid) return;
+                const ns = Math.max(0.4, Math.min(4, rScale + (ev.clientX - rStart) / cardSize));
+                card.dataset.scale = ns;
+                applyCardTransform(card);
+            }
+            function onUp(ev) {
+                if (ev.pointerId !== rPid) return;
+                document.removeEventListener('pointermove', onMove);
+                document.removeEventListener('pointerup', onUp);
+            }
+            document.addEventListener('pointermove', onMove);
+            document.addEventListener('pointerup', onUp);
+        });
+        card.appendChild(rh);
+    }
+
+    function applyCardTransform(card) {
+        const x = parseFloat(card.dataset.x)||0, y = parseFloat(card.dataset.y)||0;
+        const s = parseFloat(card.dataset.scale)||1;
+        card.style.left = x + 'px';
+        card.style.top  = y + 'px';
+        card.style.transform = `scale(${s})`;
+    }
+
+    function initMini3D(card, type, size) {
+        const scene = new THREE.Scene(); scene.background = new THREE.Color(0xf4f3ef);
+        const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000); camera.position.z = 4;
+        const renderer = new THREE.WebGLRenderer({antialias:true});
+        renderer.setSize(size, size); renderer.setPixelRatio(window.devicePixelRatio);
+        const canvas = renderer.domElement;
+        canvas.style.cssText = 'display:block;width:100%;height:calc(100% - 22px);margin-top:22px;cursor:grab;';
+        card.insertBefore(canvas, card.firstChild);
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+        const dl = new THREE.DirectionalLight(0xffffff, 0.8); dl.position.set(5,5,5); scene.add(dl);
+        const dl2 = new THREE.DirectionalLight(0xffffff, 0.3); dl2.position.set(-5,-3,5); scene.add(dl2);
+
+        const shapeMap = {
+            cube:     [new THREE.BoxGeometry(2,2,2),     0x4f7c75, false],
+            cuboid:   [new THREE.BoxGeometry(2.8,1.8,1.6),0x5b80a5, false],
+            sphere:   [new THREE.SphereGeometry(1.5,32,32), 0xa85c72, false],
+            pyramid:  [new THREE.ConeGeometry(1.5,2,4),  0xdec894, true],
+            cylinder: [new THREE.CylinderGeometry(1,1,2.5,32), 0x5b80a5, false],
+            cone:     [new THREE.ConeGeometry(1,2.5,32), 0x938db3, false]
+        };
+        const [geo, color, flat] = shapeMap[type] || shapeMap['cube'];
+        const mesh = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({color, flatShading:flat}));
+        // Only add edge lines on hard-edged shapes (cube, cuboid, pyramid)
+        if (type === 'cube' || type === 'cuboid' || type === 'pyramid') {
+            mesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({color:0x00000044})));
+        }
+        mesh.rotation.x = 0.4; mesh.rotation.y = 0.5;
+        scene.add(mesh);
+
+        let isDrag = false, prevX = 0, prevY = 0;
+        canvas.addEventListener('pointerdown', (e) => { isDrag=true; prevX=e.clientX; prevY=e.clientY; canvas.setPointerCapture(e.pointerId); e.stopPropagation(); });
+        canvas.addEventListener('pointermove', (e) => { if(!isDrag) return; mesh.rotation.y+=(e.clientX-prevX)*0.012; mesh.rotation.x+=(e.clientY-prevY)*0.012; prevX=e.clientX; prevY=e.clientY; });
+        canvas.addEventListener('pointerup',   (e) => { isDrag=false; canvas.releasePointerCapture(e.pointerId); });
+
+        let animId;
+        const state = {card, scene, camera, renderer, mesh, canvas};
+        function animate() {
+            animId = requestAnimationFrame(animate);
+            if (!isDrag) { mesh.rotation.y += 0.006; mesh.rotation.x += 0.002; }
+            renderer.render(scene, camera);
+        }
+        state.animId = animId;
+        animate();
+        return state;
+    }
+
+    function clearGeoWorkspace() {
+        // Stop all 3D animations and dispose
+        geo3DCards.forEach(s => {
+            cancelAnimationFrame(s.animId);
+            s.renderer.dispose();
+        });
+        geo3DCards = [];
+        // Remove all shapes
+        const ws = document.getElementById('workspace-geometry');
+        ws.querySelectorAll('.draggable-item, .geo-3d-card').forEach(el => el.remove());
+        selectedItem = null;
+    }
+
+    // Legacy stubs (no longer used but keep switchView from breaking)
+    function setGeometryMode(mode) {}
+    function init3D() {}
+    function set3DShape(type) {}
+    function animate3D() {}
+    function onWindowResize3D() {}
+    function cleanup3D() {}
+    // ===================== COUNTING =====================
+    let countingMode='friends';
+    function setCountingMode(mode) {
+        countingMode=mode;
+        const fv=document.getElementById('counting-friends'), gv=document.getElementById('counting-grid');
+        if(mode==='friends') { fv.classList.remove('hidden'); fv.classList.add('flex'); gv.classList.add('hidden'); gv.classList.remove('flex'); document.querySelectorAll('.ten-friend-item').forEach(e=>e.remove()); initTenFriends(); }
+        else { fv.classList.add('hidden'); fv.classList.remove('flex'); gv.classList.remove('hidden'); gv.classList.add('flex'); document.querySelectorAll('.ten-friend-item').forEach(e=>e.remove()); buildMathGrid(mode==='multiplication'); }
+    }
+    function initTenFriends() {
+        document.querySelectorAll('.ten-friend-item').forEach(e=>e.remove());
+        const z1=document.getElementById('zone-1'), z2=document.getElementById('zone-2');
+        for(let i=0;i<10;i++) {
+            const ball=document.createElement('div');
+            ball.className='w-12 h-12 rounded-full shadow-md cursor-grab active:cursor-grabbing border-2 border-white draggable-item ten-friend-item';
+            ball.style.backgroundColor=i<5?'#a85c72':'#5b80a5'; ball.style.position='absolute'; ball.dataset.zone=i<5?'1':'2';
+            makeDraggable(ball,null,(el)=>{
+                const r1=z1.getBoundingClientRect(), r2=z2.getBoundingClientRect(), br=el.getBoundingClientRect();
+                const cx=br.left+br.width/2, cy=br.top+br.height/2;
+                if(isInside(cx,cy,r1)){ el.dataset.zone='1'; el.style.backgroundColor='#a85c72'; }
+                else if(isInside(cx,cy,r2)){ el.dataset.zone='2'; el.style.backgroundColor='#5b80a5'; }
+                updateTenFriendsCount();
+            });
+            setTimeout(()=>{ const tz=i<5?z1:z2, rect=tz.getBoundingClientRect(), idx=i%5; ball.dataset.x=rect.left+20+idx*55; ball.dataset.y=rect.top+20; updateTransform(ball); },150);
+            document.body.appendChild(ball);
+        }
+        updateTenFriendsCount();
+    }
+    function isInside(x,y,rect){ return x>=rect.left&&x<=rect.right&&y>=rect.top&&y<=rect.bottom; }
+    function updateTenFriendsCount() { let c1=0,c2=0; document.querySelectorAll('.ten-friend-item').forEach(el=>{ if(el.dataset.zone==='1') c1++; else c2++; }); document.getElementById('friend-count-1').innerText=c1; document.getElementById('friend-count-2').innerText=c2; }
+    function buildMathGrid(isMultiplication) {
+        const container=document.getElementById('math-table-container'), eq=document.getElementById('grid-equation'); container.innerHTML='';
+        const table=document.createElement('table'); table.className='border-collapse';
+        for(let i=0;i<=10;i++) {
+            const tr=document.createElement('tr');
+            for(let j=0;j<=10;j++) {
+                const td=document.createElement(i===0||j===0?'th':'td');
+                td.className=`w-12 h-12 text-center border border-soft-border math-grid-cell cursor-pointer ${i===0||j===0?'bg-soft-bg text-soft-muted font-bold':'text-soft-text'}`;
+                let val='';
+                if(i===0&&j===0) val=isMultiplication?'×':'÷';
+                else if(i===0) val=j; else if(j===0) val=i; else val=i*j;
+                td.innerText=val;
+                if(i>0&&j>0) {
+                    td.onmouseenter=()=>{ Array.from(table.rows).forEach(r=>{if(r.cells[j])r.cells[j].classList.add('highlight-row-col');}); Array.from(tr.cells).forEach(c=>c.classList.add('highlight-row-col')); eq.innerHTML=isMultiplication?`${i} <span class="text-soft-muted">×</span> ${j} <span class="text-soft-muted">=</span> <span class="text-2xl">${i*j}</span>`:`${i*j} <span class="text-soft-muted">÷</span> ${i} <span class="text-soft-muted">=</span> <span class="text-2xl">${j}</span>`; };
+                    td.onmouseleave=()=>{ Array.from(table.rows).forEach(r=>{if(r.cells[j])r.cells[j].classList.remove('highlight-row-col');}); Array.from(tr.cells).forEach(c=>c.classList.remove('highlight-row-col')); };
+                }
+                tr.appendChild(td);
+            }
+            table.appendChild(tr);
+        }
+        container.appendChild(table);
+    }
+
+    // ===================== CLOCK =====================
+    let clockTime = new Date(); clockTime.setHours(10, 10, 0, 0);
+    let clockTotalMinutes = 10 * 60 + 10; // track as float to avoid Date rounding issues
+
+    // Convert degrees (0=top, clockwise) to x,y on circle of given radius centred at cx,cy
+    function clockXY(cx, cy, r, deg) {
+        const rad = (deg - 90) * Math.PI / 180;
+        return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+    }
+
+    let clockDragInitialized = false;
+
+    function initClock() {
+        drawClockFace();
+        updateClockView();
+        // Drag setup deferred — SVG must be visible for getScreenCTM() to work
+    }
+
+    function initClockDragIfNeeded() {
+        if (clockDragInitialized) return;
+        clockDragInitialized = true;
+        setupClockDrag(document.getElementById('hand-minute'), 'minute');
+        setupClockDrag(document.getElementById('hand-hour'),   'hour');
+    }
+
+    function drawClockFace() {
+        const CX = 170, CY = 170;
+
+        // ── Minute ring (teal outer band) ──────────────────────────────
+        const minRing = document.getElementById('clock-minute-ring');
+        minRing.innerHTML = '';
+        for (let m = 0; m < 60; m++) {
+            const angle = m * 6;
+            const isFive = m % 5 === 0;
+
+            // Tick lines between the number bubbles
+            if (!isFive) {
+                const inner = clockXY(CX, CY, 148, angle);
+                const outer = clockXY(CX, CY, 158, angle);
+                const tick = document.createElementNS("http://www.w3.org/2000/svg","line");
+                tick.setAttribute("x1", inner.x); tick.setAttribute("y1", inner.y);
+                tick.setAttribute("x2", outer.x); tick.setAttribute("y2", outer.y);
+                tick.setAttribute("stroke","rgba(255,255,255,0.7)"); tick.setAttribute("stroke-width","1.5");
+                minRing.appendChild(tick);
+            } else {
+                // White bubble with minute label  :00 :05 :10 …
+                const bPos = clockXY(CX, CY, 154, angle);
+                const mins = m === 0 ? ':00' : `:${String(m).padStart(2,'0')}`;
+
+                const circ = document.createElementNS("http://www.w3.org/2000/svg","circle");
+                circ.setAttribute("cx", bPos.x); circ.setAttribute("cy", bPos.y);
+                circ.setAttribute("r","11"); circ.setAttribute("fill","white");
+                circ.setAttribute("opacity","0.92");
+                minRing.appendChild(circ);
+
+                const txt = document.createElementNS("http://www.w3.org/2000/svg","text");
+                txt.setAttribute("x", bPos.x); txt.setAttribute("y", bPos.y + 4);
+                txt.setAttribute("text-anchor","middle");
+                txt.setAttribute("font-family","Nunito,sans-serif");
+                txt.setAttribute("font-size","8.5");
+                txt.setAttribute("font-weight","800");
+                txt.setAttribute("fill","#1a6060");
+                txt.textContent = mins;
+                minRing.appendChild(txt);
+            }
+        }
+
+        // ── Inner face ticks ────────────────────────────────────────────
+        const ticksG = document.getElementById('clock-ticks');
+        ticksG.innerHTML = '';
+        for (let i = 0; i < 60; i++) {
+            const angle = i * 6;
+            const isHour = i % 5 === 0;
+            const r1 = isHour ? 118 : 125;
+            const r2 = 136;
+            const p1 = clockXY(CX, CY, r1, angle);
+            const p2 = clockXY(CX, CY, r2, angle);
+            const line = document.createElementNS("http://www.w3.org/2000/svg","line");
+            line.setAttribute("x1",p1.x); line.setAttribute("y1",p1.y);
+            line.setAttribute("x2",p2.x); line.setAttribute("y2",p2.y);
+            line.setAttribute("stroke", isHour ? "#c8c4be" : "#e0ddd8");
+            line.setAttribute("stroke-width", isHour ? "2.5" : "1");
+            ticksG.appendChild(line);
+        }
+
+        // ── 24h numbers (outer ring, amber/orange) — only 13–24 ────────
+        const g24 = document.getElementById('clock-numbers-24');
+        g24.innerHTML = '';
+        // 13 sits at the same position as 1, i.e. angle = 1*30 = 30°
+        // 24 sits at the same position as 12, i.e. angle = 0°
+        for (let h = 13; h <= 24; h++) {
+            const hour12 = h === 24 ? 0 : h - 12; // maps 13→1, 14→2 … 24→0(12)
+            const angle  = hour12 * 30;            // same angles as the 12h ring
+            const pos = clockXY(CX, CY, 103, angle);
+            const txt = document.createElementNS("http://www.w3.org/2000/svg","text");
+            txt.setAttribute("x", pos.x); txt.setAttribute("y", pos.y + 4.5);
+            txt.setAttribute("text-anchor","middle");
+            txt.setAttribute("font-family","Nunito,sans-serif");
+            txt.setAttribute("font-size", h === 24 ? "12" : "10.5");
+            txt.setAttribute("font-weight","700");
+            txt.setAttribute("fill","#c07000");
+            txt.textContent = String(h);
+            g24.appendChild(txt);
+        }
+
+        // ── 12h numbers (inner ring, dark navy) ──────────────────────────
+        const g12 = document.getElementById('clock-numbers-12');
+        g12.innerHTML = '';
+        for (let h = 1; h <= 12; h++) {
+            const angle = h * 30;
+            const pos = clockXY(CX, CY, 76, angle);
+            const txt = document.createElementNS("http://www.w3.org/2000/svg","text");
+            txt.setAttribute("x", pos.x); txt.setAttribute("y", pos.y + 6);
+            txt.setAttribute("text-anchor","middle");
+            txt.setAttribute("font-family","Nunito,sans-serif");
+            txt.setAttribute("font-size","18");
+            txt.setAttribute("font-weight","800");
+            txt.setAttribute("fill","#1a2e5a");
+            txt.textContent = String(h);
+            g12.appendChild(txt);
+        }
+    }
+
+    function setupClockDrag(element, type) {
+        let draggingHand = false, lastAngle = 0;
+
+        element.addEventListener('pointerdown', (e) => {
+            const svgEl = document.getElementById('analog-clock');
+            if (!svgEl.getScreenCTM()) return; // SVG not yet visible
+            draggingHand = true;
+            element.setPointerCapture(e.pointerId);
+            const pt = getSVGPoint(e, svgEl);
+            lastAngle = Math.atan2(pt.y - 170, pt.x - 170) * 180 / Math.PI;
+            e.preventDefault();
+        });
+        element.addEventListener('pointermove', (e) => {
+            if (!draggingHand) return;
+            const svgEl = document.getElementById('analog-clock');
+            const ctm = svgEl.getScreenCTM();
+            if (!ctm) return;
+            const pt = getSVGPoint(e, svgEl);
+            let cur = Math.atan2(pt.y - 170, pt.x - 170) * 180 / Math.PI;
+            let diff = cur - lastAngle;
+            if (diff >  180) diff -= 360;
+            if (diff < -180) diff += 360;
+            lastAngle = cur;
+            if (type === 'minute') clockTotalMinutes += diff / 6;
+            else                   clockTotalMinutes += (diff / 30) * 60;
+            // Sync Date object from float
+            const totalMins = Math.round(clockTotalMinutes);
+            clockTime.setHours(Math.floor(((totalMins % 1440) + 1440) % 1440 / 60));
+            clockTime.setMinutes(((totalMins % 60) + 60) % 60);
+            updateClockView();
+        });
+        element.addEventListener('pointerup', (e) => {
+            draggingHand = false;
+            element.releasePointerCapture(e.pointerId);
+            // Snap to nearest whole minute
+            clockTotalMinutes = Math.round(clockTotalMinutes);
+            const snapMins = ((clockTotalMinutes % 60) + 60) % 60;
+            const snapHours = Math.floor(((clockTotalMinutes % 1440) + 1440) % 1440 / 60);
+            clockTime.setHours(snapHours);
+            clockTime.setMinutes(snapMins);
+            updateClockView();
+        });
+    }
+
+    function getSVGPoint(e, svg) {
+        const pt = svg.createSVGPoint();
+        pt.x = e.clientX; pt.y = e.clientY;
+        return pt.matrixTransform(svg.getScreenCTM().inverse());
+    }
+
+    function updateClockView() {
+        const h = clockTime.getHours();
+        const m = clockTime.getMinutes();
+        const s = clockTime.getSeconds();
+
+        // Rotate hands (centred at 170,170)
+        document.getElementById('hand-minute').setAttribute('transform', `rotate(${(m + s/60)*6} 170 170)`);
+        document.getElementById('hand-hour').setAttribute('transform',   `rotate(${((h%12) + m/60)*30} 170 170)`);
+
+        const mm = String(m).padStart(2,'0');
+        const isFM = h < 12; // förmiddag = 00–11, eftermiddag = 12–23
+
+        // Förmiddag panel — always shows the AM equivalent time (h as-is, 00–11)
+        document.getElementById('digital-h-fm').innerText = String(h < 12 ? h : h - 12).padStart(2,'0');
+        document.getElementById('digital-m-fm').innerText = mm;
+
+        // Eftermiddag panel — always shows the PM/24h time (12–23)
+        document.getElementById('digital-h-em').innerText = String(h >= 12 ? h : h + 12).padStart(2,'0');
+        document.getElementById('digital-m-em').innerText = mm;
+
+        // Highlight the active panel, dim the other
+        const panelFM = document.getElementById('panel-fm');
+        const panelEM = document.getElementById('panel-em');
+        if (isFM) {
+            panelFM.style.opacity = '1';
+            panelFM.style.borderColor = '#1a2e5a';
+            panelFM.style.background = '#f0f3f8';
+            panelEM.style.opacity = '0.38';
+            panelEM.style.borderColor = '#d6d4d0';
+            panelEM.style.background = 'white';
+        } else {
+            panelEM.style.opacity = '1';
+            panelEM.style.borderColor = '#1a2e5a';
+            panelEM.style.background = '#f0f3f8';
+            panelFM.style.opacity = '0.38';
+            panelFM.style.borderColor = '#d6d4d0';
+            panelFM.style.background = 'white';
+        }
+
+        // Highlight minute bubble in ring
+        highlightMinuteBubble(m);
+    }
+
+    function highlightMinuteBubble(currentMinute) {
+        // Round to nearest 5
+        const nearest5 = Math.round(currentMinute / 5) * 5 % 60;
+        const ringG = document.getElementById('clock-minute-ring');
+        if (!ringG) return;
+        // Reset all bubble circles to white
+        ringG.querySelectorAll('circle').forEach(c => {
+            c.setAttribute('fill','white');
+            c.setAttribute('opacity','0.92');
+        });
+        // Highlight the matching one — find by index (each 5th = bubble, index 0..11)
+        const bubbleIndex = nearest5 / 5; // 0..11
+        const bubbles = ringG.querySelectorAll('circle');
+        if (bubbles[bubbleIndex]) {
+            bubbles[bubbleIndex].setAttribute('fill','#ffe066');
+            bubbles[bubbleIndex].setAttribute('opacity','1');
+        }
+    }
+
+    function adjustTime(minutes) {
+        clockTotalMinutes += minutes;
+        const totalMins = Math.round(clockTotalMinutes);
+        clockTime.setHours(Math.floor(((totalMins % 1440) + 1440) % 1440 / 60));
+        clockTime.setMinutes(((totalMins % 60) + 60) % 60);
+        updateClockView();
+    }
+
+
+    // ===================== STATISTICS =====================
+    const CHART_COLORS = ['#5b80a5','#a85c72','#4f7c75','#dec894','#938db3','#d58b99','#8bb39c','#8db1d1'];
+    let chartType = 'bar';
+    let statData = [
+        {label:'Äpplen', value:8},
+        {label:'Bananer', value:5},
+        {label:'Päron', value:3},
+        {label:'Apelsiner', value:7},
+        {label:'Druvor', value:6}
+    ];
+
+    function initStats() {
+        renderStatRows();
+        renderChart();
+    }
+
+    function setChartType(type) {
+        chartType = type;
+        ['bar','line','pie'].forEach(t => {
+            const tab = document.getElementById(`tab-${t}`);
+            tab.classList.toggle('active', t===type);
+        });
+        const tips = {
+            bar: 'Dra i staplarna uppåt/nedåt för att ändra värdet direkt i diagrammet!',
+            line: 'Dra i punkterna uppåt/nedåt för att ändra värdet direkt i linjediagrammet!',
+            pie: 'Ändra värdena i sidopanelen för att se hur cirkelns delar förändras.'
+        };
+        document.getElementById('chart-tip').textContent = tips[type];
+        renderChart();
+    }
+
+    function renderStatRows() {
+        const container = document.getElementById('stat-rows');
+        container.innerHTML = '';
+        statData.forEach((row, i) => {
+            const div = document.createElement('div');
+            div.className = 'flex items-center gap-2 bg-soft-bg rounded-lg px-2 py-1 border border-soft-border';
+            const colorDot = document.createElement('div');
+            colorDot.className = 'w-3 h-3 rounded-full shrink-0';
+            colorDot.style.backgroundColor = CHART_COLORS[i % CHART_COLORS.length];
+            const labelInput = document.createElement('input');
+            labelInput.type = 'text';
+            labelInput.value = row.label;
+            labelInput.className = 'stat-input flex-1 text-xs';
+            labelInput.placeholder = 'Etikett';
+            labelInput.oninput = (e) => { statData[i].label = e.target.value; renderChart(); };
+            const valueInput = document.createElement('input');
+            valueInput.type = 'number';
+            valueInput.value = row.value;
+            valueInput.min = 0; valueInput.max = 100;
+            valueInput.className = 'stat-input w-14 text-xs font-bold';
+            valueInput.oninput = (e) => { statData[i].value = Math.max(0, parseFloat(e.target.value)||0); renderChart(); };
+            div.appendChild(colorDot); div.appendChild(labelInput); div.appendChild(valueInput);
+            container.appendChild(div);
+        });
+    }
+
+    function addStatRow() {
+        if(statData.length >= 8) return;
+        statData.push({label: `Kategori ${statData.length+1}`, value: Math.floor(Math.random()*8)+2});
+        renderStatRows(); renderChart();
+    }
+
+    function removeLastStatRow() {
+        if(statData.length <= 2) return;
+        statData.pop();
+        renderStatRows(); renderChart();
+    }
+
+    function renderChart() {
+        if(chartType==='bar') renderBarChart();
+        else if(chartType==='line') renderLineChart();
+        else if(chartType==='pie') renderPieChart();
+    }
+
+    function getChartDimensions() {
+        const svg = document.getElementById('stat-chart');
+        const rect = svg.parentElement.getBoundingClientRect();
+        const W = Math.max(rect.width || 600, 400);
+        const H = Math.max(rect.height || 420, 300);
+        return {W, H};
+    }
+
+    function renderBarChart() {
+        const svg = document.getElementById('stat-chart');
+        const {W, H} = getChartDimensions();
+        svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+        const showValues = document.getElementById('show-values').checked;
+        const showGrid = document.getElementById('show-grid').checked;
+        const title = document.getElementById('chart-title-input').value;
+        const padLeft=55, padRight=20, padTop=55, padBottom=55;
+        const chartW=W-padLeft-padRight, chartH=H-padTop-padBottom;
+        const maxVal = Math.max(...statData.map(d=>d.value), 1);
+        const yMax = Math.ceil(maxVal*1.2/5)*5 || 10;
+        const barW = (chartW / statData.length) * 0.6;
+        const barGap = chartW / statData.length;
+
+        let html = `<rect x="0" y="0" width="${W}" height="${H}" fill="white" rx="16"/>`;
+        // Title
+        html += `<text x="${W/2}" y="32" text-anchor="middle" font-family="Nunito,sans-serif" font-size="18" font-weight="800" fill="#4a4b50">${title}</text>`;
+        // Grid & Y axis labels
+        const gridLines = 5;
+        for(let g=0;g<=gridLines;g++) {
+            const gy = padTop + chartH - (g/gridLines)*chartH;
+            const gv = Math.round((g/gridLines)*yMax);
+            if(showGrid && g>0) html += `<line x1="${padLeft}" y1="${gy}" x2="${W-padRight}" y2="${gy}" stroke="#e8e6e2" stroke-width="1" stroke-dasharray="4,4"/>`;
+            html += `<text x="${padLeft-8}" y="${gy+5}" text-anchor="end" font-family="Nunito,sans-serif" font-size="12" fill="#8c8d92" font-weight="600">${gv}</text>`;
+        }
+        // X axis line
+        html += `<line x1="${padLeft}" y1="${padTop+chartH}" x2="${W-padRight}" y2="${padTop+chartH}" stroke="#d6d4d0" stroke-width="2"/>`;
+        // Y axis line
+        html += `<line x1="${padLeft}" y1="${padTop}" x2="${padLeft}" y2="${padTop+chartH}" stroke="#d6d4d0" stroke-width="2"/>`;
+
+        // Bars
+        statData.forEach((d,i) => {
+            const bh = (d.value/yMax)*chartH;
+            const bx = padLeft + i*barGap + (barGap-barW)/2;
+            const by = padTop + chartH - bh;
+            const color = CHART_COLORS[i%CHART_COLORS.length];
+            const rx = 6;
+            // Bar with rounded top
+            html += `<rect class="stat-bar" x="${bx}" y="${by}" width="${barW}" height="${Math.max(bh,2)}" fill="${color}" rx="${rx}" data-idx="${i}" style="cursor:ns-resize;"/>`;
+            // Value label
+            if(showValues && d.value > 0) html += `<text x="${bx+barW/2}" y="${by-6}" text-anchor="middle" font-family="Nunito,sans-serif" font-size="13" font-weight="700" fill="${color}">${d.value}</text>`;
+            // X label
+            const labelY = padTop+chartH+22;
+            html += `<text x="${bx+barW/2}" y="${labelY}" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="600" fill="#4a4b50">${d.label}</text>`;
+        });
+
+        svg.innerHTML = html;
+
+        // Drag to change bar values
+        statData.forEach((d,i) => {
+            const barEl = svg.querySelector(`rect[data-idx="${i}"]`);
+            if(!barEl) return;
+            let draggingBar = false, startYBar, startValBar;
+            barEl.addEventListener('pointerdown',(e)=>{ draggingBar=true; startYBar=e.clientY; startValBar=d.value; barEl.setPointerCapture(e.pointerId); e.stopPropagation(); e.preventDefault(); });
+            barEl.addEventListener('pointermove',(e)=>{ if(!draggingBar) return; const dy=startYBar-e.clientY; const newVal=Math.max(0,Math.min(100,Math.round(startValBar+(dy/chartH)*yMax))); if(newVal!==statData[i].value){ statData[i].value=newVal; renderStatRows(); renderBarChart(); } });
+            barEl.addEventListener('pointerup',(e)=>{ draggingBar=false; barEl.releasePointerCapture(e.pointerId); });
+        });
+    }
+
+    function renderLineChart() {
+        const svg = document.getElementById('stat-chart');
+        const {W, H} = getChartDimensions();
+        svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+        const showValues = document.getElementById('show-values').checked;
+        const showGrid = document.getElementById('show-grid').checked;
+        const title = document.getElementById('chart-title-input').value;
+        const padLeft=55, padRight=20, padTop=55, padBottom=55;
+        const chartW=W-padLeft-padRight, chartH=H-padTop-padBottom;
+        const maxVal = Math.max(...statData.map(d=>d.value), 1);
+        const yMax = Math.ceil(maxVal*1.2/5)*5 || 10;
+        const n = statData.length;
+
+        let html = `<rect x="0" y="0" width="${W}" height="${H}" fill="white" rx="16"/>`;
+        html += `<text x="${W/2}" y="32" text-anchor="middle" font-family="Nunito,sans-serif" font-size="18" font-weight="800" fill="#4a4b50">${title}</text>`;
+        const gridLines = 5;
+        for(let g=0;g<=gridLines;g++) {
+            const gy = padTop + chartH - (g/gridLines)*chartH;
+            const gv = Math.round((g/gridLines)*yMax);
+            if(showGrid && g>0) html += `<line x1="${padLeft}" y1="${gy}" x2="${W-padRight}" y2="${gy}" stroke="#e8e6e2" stroke-width="1" stroke-dasharray="4,4"/>`;
+            html += `<text x="${padLeft-8}" y="${gy+5}" text-anchor="end" font-family="Nunito,sans-serif" font-size="12" fill="#8c8d92" font-weight="600">${gv}</text>`;
+        }
+        html += `<line x1="${padLeft}" y1="${padTop+chartH}" x2="${W-padRight}" y2="${padTop+chartH}" stroke="#d6d4d0" stroke-width="2"/>`;
+        html += `<line x1="${padLeft}" y1="${padTop}" x2="${padLeft}" y2="${padTop+chartH}" stroke="#d6d4d0" stroke-width="2"/>`;
+
+        // Points
+        const pts = statData.map((d,i) => ({
+            x: padLeft + (n===1 ? chartW/2 : (i/(n-1))*chartW),
+            y: padTop + chartH - (d.value/yMax)*chartH
+        }));
+
+        // Area fill
+        if(pts.length > 1) {
+            let areaPath = `M ${pts[0].x} ${padTop+chartH}`;
+            pts.forEach(p => areaPath += ` L ${p.x} ${p.y}`);
+            areaPath += ` L ${pts[pts.length-1].x} ${padTop+chartH} Z`;
+            html += `<path d="${areaPath}" fill="#5b80a5" opacity="0.08"/>`;
+        }
+
+        // Line
+        if(pts.length > 1) {
+            let linePath = `M ${pts[0].x} ${pts[0].y}`;
+            // Smooth bezier
+            for(let i=1;i<pts.length;i++) {
+                const cpx = (pts[i-1].x+pts[i].x)/2;
+                linePath += ` C ${cpx} ${pts[i-1].y} ${cpx} ${pts[i].y} ${pts[i].x} ${pts[i].y}`;
+            }
+            html += `<path d="${linePath}" fill="none" stroke="#5b80a5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
+        }
+
+        // Dots & labels
+        pts.forEach((p,i) => {
+            html += `<circle class="line-dot" cx="${p.x}" cy="${p.y}" r="6" fill="#5b80a5" stroke="white" stroke-width="2.5" data-idx="${i}" style="cursor:ns-resize;"/>`;
+            if(showValues && statData[i].value > 0) html += `<text x="${p.x}" y="${p.y-14}" text-anchor="middle" font-family="Nunito,sans-serif" font-size="13" font-weight="700" fill="#5b80a5">${statData[i].value}</text>`;
+            html += `<text x="${p.x}" y="${padTop+chartH+22}" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="600" fill="#4a4b50">${statData[i].label}</text>`;
+        });
+
+        svg.innerHTML = html;
+
+        // Drag dots
+        statData.forEach((d,i) => {
+            const dot = svg.querySelector(`circle[data-idx="${i}"]`);
+            if(!dot) return;
+            let draggingDot=false, startYDot, startValDot;
+            dot.addEventListener('pointerdown',(e)=>{ draggingDot=true; startYDot=e.clientY; startValDot=d.value; dot.setPointerCapture(e.pointerId); e.stopPropagation(); e.preventDefault(); });
+            dot.addEventListener('pointermove',(e)=>{ if(!draggingDot) return; const dy=startYDot-e.clientY; const newVal=Math.max(0,Math.min(100,Math.round(startValDot+(dy/chartH)*yMax))); if(newVal!==statData[i].value){ statData[i].value=newVal; renderStatRows(); renderLineChart(); } });
+            dot.addEventListener('pointerup',(e)=>{ draggingDot=false; dot.releasePointerCapture(e.pointerId); });
+        });
+    }
+
+    function renderPieChart() {
+        const svg = document.getElementById('stat-chart');
+        const {W, H} = getChartDimensions();
+        svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+        const title = document.getElementById('chart-title-input').value;
+        const showValues = document.getElementById('show-values').checked;
+
+        const cx = W * 0.42, cy = H/2 + 10;
+        const r = Math.min(W*0.33, H*0.4, 160);
+        const total = statData.reduce((s,d)=>s+Math.max(d.value,0),0) || 1;
+
+        let html = `<rect x="0" y="0" width="${W}" height="${H}" fill="white" rx="16"/>`;
+        html += `<text x="${W/2}" y="32" text-anchor="middle" font-family="Nunito,sans-serif" font-size="18" font-weight="800" fill="#4a4b50">${title}</text>`;
+
+        let startAngle = -Math.PI/2;
+        statData.forEach((d,i) => {
+            const val = Math.max(d.value, 0);
+            const angle = (val/total)*2*Math.PI;
+            if(angle === 0) { startAngle += angle; return; }
+            const endAngle = startAngle + angle;
+            const x1=cx+r*Math.cos(startAngle), y1=cy+r*Math.sin(startAngle);
+            const x2=cx+r*Math.cos(endAngle), y2=cy+r*Math.sin(endAngle);
+            const largeArc = angle > Math.PI ? 1 : 0;
+            const color = CHART_COLORS[i%CHART_COLORS.length];
+            html += `<path class="pie-slice" d="M${cx},${cy} L${x1},${y1} A${r},${r},0,${largeArc},1,${x2},${y2}Z" fill="${color}" stroke="white" stroke-width="2.5" data-idx="${i}"/>`;
+            // Label in slice
+            if(showValues) {
+                const midAngle = startAngle + angle/2;
+                const lr = r*0.65;
+                const lx=cx+lr*Math.cos(midAngle), ly=cy+lr*Math.sin(midAngle);
+                const pct = Math.round(val/total*100);
+                if(pct>=5) html += `<text x="${lx}" y="${ly+5}" text-anchor="middle" font-family="Nunito,sans-serif" font-size="13" font-weight="800" fill="white">${pct}%</text>`;
+            }
+            startAngle = endAngle;
+        });
+
+        // Legend
+        const legendX = W*0.76, legendStartY = H/2 - (statData.length*22)/2;
+        statData.forEach((d,i) => {
+            const ly = legendStartY + i*26;
+            const color = CHART_COLORS[i%CHART_COLORS.length];
+            html += `<rect x="${legendX}" y="${ly}" width="14" height="14" fill="${color}" rx="3"/>`;
+            html += `<text x="${legendX+20}" y="${ly+11}" font-family="Nunito,sans-serif" font-size="12" font-weight="600" fill="#4a4b50">${d.label} (${d.value})</text>`;
+        });
+
+        svg.innerHTML = html;
+    }
+
+    window.onload = initApp;
+    window.addEventListener('resize', () => { if(currentView==='statistics') renderChart(); if(is3DActive) onWindowResize3D(); });
+    </script>
+</body>
+</html>
