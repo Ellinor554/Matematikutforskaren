@@ -1265,6 +1265,14 @@
             }
             table.appendChild(tr);
         }
+        // Touch support: show equation when moving finger over cells
+        let touchHoverTd = null;
+        const getTdFromPoint = (x, y) => { const el = document.elementFromPoint(x, y); return el ? (el.tagName === 'TD' ? el : (el.closest ? el.closest('td') : null)) : null; };
+        const setTouchHover = (td) => { if (td === touchHoverTd) return; if (touchHoverTd && touchHoverTd.onmouseleave) touchHoverTd.onmouseleave(); touchHoverTd = td; if (td && td.onmouseenter) td.onmouseenter(); };
+        table.addEventListener('touchstart', (e) => { if (!e.touches.length) return; const t = e.touches[0]; setTouchHover(getTdFromPoint(t.clientX, t.clientY)); }, { passive: true });
+        table.addEventListener('touchmove', (e) => { if (!e.touches.length) return; const t = e.touches[0]; setTouchHover(getTdFromPoint(t.clientX, t.clientY)); }, { passive: true });
+        table.addEventListener('touchend', () => { touchHoverTd = null; }, { passive: true });
+        table.addEventListener('touchcancel', () => { if (touchHoverTd && touchHoverTd.onmouseleave) touchHoverTd.onmouseleave(); touchHoverTd = null; }, { passive: true });
         container.appendChild(table);
     }
 
