@@ -845,7 +845,7 @@
                         if (!pulled && dist > 10) {
                             pulled = true;
                             // Spawn loose slice at current pointer position
-                            looseEl = spawnLooseSlice(d, i, color, ev.clientX, ev.clientY, ws);
+                            looseEl = spawnLooseSlice(d, i, color, ev.clientX, ev.clientY, ws, parseFloat(wrapper.dataset.scale));
                             // Hand off to global frac drag
                             fracStartDrag(looseEl, ev);
                         }
@@ -871,7 +871,7 @@
         }
     }
 
-    function spawnLooseSlice(d, sliceIndex, color, clientX, clientY, ws) {
+    function spawnLooseSlice(d, sliceIndex, color, clientX, clientY, ws, scale) {
         const wsRect = ws.getBoundingClientRect();
         const cx = FRAC_R + 4, cy = FRAC_R + 4, r = FRAC_R;
         const textColor = (color === '#dec894') ? '#5a4a1a' : '#ffffff';
@@ -888,12 +888,15 @@
             <text x="${lp.x}" y="${lp.y+fs*0.35}" text-anchor="middle" font-family="Nunito,sans-serif" font-size="${fs}" font-weight="800" fill="${textColor}" pointer-events="none">1/${d}</text>
         </svg>`;
 
+        const s = scale || 1;
         const el = document.createElement('div');
-        const nx = clientX - wsRect.left - FRAC_SVG/2;
-        const ny = clientY - wsRect.top  - FRAC_SVG/2;
+        const nx = clientX - wsRect.left - FRAC_SVG * s / 2;
+        const ny = clientY - wsRect.top  - FRAC_SVG * s / 2;
         makeFracElement(el, nx, ny);
+        el.dataset.scale = s;
         el.innerHTML = svg;
         ws.appendChild(el);
+        applyFracTransform(el);
 
         // Loose slice gets normal drag on subsequent pointerdown
         addFracDragListener(el);
