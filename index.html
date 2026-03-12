@@ -150,7 +150,7 @@
                 <div class="flex flex-col gap-2" id="fraction-buttons"></div>
                 <hr class="border-soft-border"/>
                 <div class="p-3 bg-soft-blueLight/15 rounded-xl text-xs text-soft-blue border border-soft-blueLight/30 leading-relaxed">
-                    <i class="fas fa-hand-pointer mr-1"></i> <strong>Dra cirkeln</strong> för att flytta den.<br>
+                    <i class="fas fa-arrows-alt mr-1"></i> <strong>Dra handtaget ovanför</strong> för att flytta hela cirkeln.<br>
                     <i class="fas fa-expand-arrows-alt mr-1 mt-1"></i> <strong>Dra en bit</strong> för att lyfta ur den.<br>
                     <i class="fas fa-search-plus mr-1 mt-1"></i> <strong>Dra ⌟-hörnet</strong> för att ändra storlek.
                 </div>
@@ -618,6 +618,7 @@
     ];
     const FRAC_R = 72;
     const FRAC_SVG = FRAC_R * 2 + 8;
+    const FRAC_BOARD_SCALE = 1.5; // Scale applied to circles placed on the board
 
     // Single global frac drag state (mode: 'move' | 'resize')
     let fracDrag = null;
@@ -667,6 +668,22 @@
         el.style.top  = y + 'px';
         el.style.transform = 'scale(' + s + ')';
         el.style.transformOrigin = 'top left';
+    }
+
+    function addMoveHandle(el) {
+        const handle = document.createElement('div');
+        handle.style.cssText = 'position:absolute;top:-28px;left:50%;transform:translateX(-50%);height:22px;padding:0 12px;background:white;border:1.5px solid #c8c9ce;border-radius:8px;cursor:grab;display:flex;align-items:center;justify-content:center;font-size:14px;color:#6a6b70;user-select:none;touch-action:none;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.12);';
+        handle.setAttribute('role', 'button');
+        handle.setAttribute('aria-label', 'Flytta hela cirkeln');
+        handle.textContent = '\u28bf';
+        handle.title = 'Dra för att flytta hela cirkeln';
+        handle.addEventListener('pointerdown', (e) => {
+            if (e.button !== 0) return;
+            e.preventDefault();
+            e.stopPropagation();
+            fracStartDrag(el, e);
+        });
+        el.appendChild(handle);
     }
 
     function addResizeHandle(el) {
@@ -777,15 +794,18 @@
 
     function addFractionCircle(d, color) {
         const ws = document.getElementById('workspace-fractions');
-        const x = ws.clientWidth/2 - FRAC_SVG/2 + (Math.random()*80 - 40);
-        const y = ws.clientHeight - FRAC_SVG - 24 + (Math.random()*30 - 15);
+        const x = ws.clientWidth/2 - FRAC_SVG * FRAC_BOARD_SCALE / 2 + (Math.random()*80 - 40);
+        const y = ws.clientHeight - FRAC_SVG * FRAC_BOARD_SCALE - 24 + (Math.random()*30 - 15);
 
         const wrapper = document.createElement('div');
         makeFracElement(wrapper, x, y);
+        wrapper.dataset.scale = FRAC_BOARD_SCALE;
         wrapper.dataset.d = d;
         wrapper.dataset.color = color;
         wrapper.innerHTML = buildCircleSVG(d, color);
         ws.appendChild(wrapper);
+        applyFracTransform(wrapper);
+        addMoveHandle(wrapper);
         addResizeHandle(wrapper);
 
         if (d === 1) {
