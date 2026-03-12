@@ -1245,6 +1245,7 @@
     function buildMathGrid(isMultiplication) {
         const container=document.getElementById('math-table-container'), eq=document.getElementById('grid-equation'); container.innerHTML='';
         const table=document.createElement('table'); table.className='border-collapse';
+        let pinned=null, pinnedEq='';
         for(let i=0;i<=10;i++) {
             const tr=document.createElement('tr');
             for(let j=0;j<=10;j++) {
@@ -1255,8 +1256,10 @@
                 else if(i===0) val=j; else if(j===0) val=i; else val=i*j;
                 td.innerText=val;
                 if(i>0&&j>0) {
-                    td.onmouseenter=()=>{ Array.from(table.rows).forEach(r=>{if(r.cells[j])r.cells[j].classList.add('highlight-row-col');}); Array.from(tr.cells).forEach(c=>c.classList.add('highlight-row-col')); eq.innerHTML=isMultiplication?`${i} <span class="text-soft-muted">×</span> ${j} <span class="text-soft-muted">=</span> <span class="text-2xl">${i*j}</span>`:`${i*j} <span class="text-soft-muted">÷</span> ${i} <span class="text-soft-muted">=</span> <span class="text-2xl">${j}</span>`; };
-                    td.onmouseleave=()=>{ Array.from(table.rows).forEach(r=>{if(r.cells[j])r.cells[j].classList.remove('highlight-row-col');}); Array.from(tr.cells).forEach(c=>c.classList.remove('highlight-row-col')); };
+                    const eqHtml=isMultiplication?`${i} <span class="text-soft-muted">×</span> ${j} <span class="text-soft-muted">=</span> <span class="text-2xl">${i*j}</span>`:`${i*j} <span class="text-soft-muted">÷</span> ${i} <span class="text-soft-muted">=</span> <span class="text-2xl">${j}</span>`;
+                    td.onmouseenter=()=>{ Array.from(table.rows).forEach(r=>{if(r.cells[j])r.cells[j].classList.add('highlight-row-col');}); Array.from(tr.cells).forEach(c=>c.classList.add('highlight-row-col')); eq.innerHTML=eqHtml; };
+                    td.onmouseleave=()=>{ if(pinned!==td){ Array.from(table.rows).forEach(r=>{if(r.cells[j])r.cells[j].classList.remove('highlight-row-col');}); Array.from(tr.cells).forEach(c=>c.classList.remove('highlight-row-col')); eq.innerHTML=pinned?pinnedEq:'För musen över eller tryck på rutorna'; } };
+                    td.onclick=()=>{ table.querySelectorAll('.highlight-row-col').forEach(el=>el.classList.remove('highlight-row-col')); if(pinned===td){pinned=null;pinnedEq='';}else{pinned=td;pinnedEq=eqHtml;} Array.from(table.rows).forEach(r=>{if(r.cells[j])r.cells[j].classList.add('highlight-row-col');}); Array.from(tr.cells).forEach(c=>c.classList.add('highlight-row-col')); eq.innerHTML=eqHtml; };
                 }
                 tr.appendChild(td);
             }
