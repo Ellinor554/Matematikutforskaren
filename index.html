@@ -254,7 +254,7 @@
                 <svg id="analog-clock" viewBox="0 0 340 340" style="width:min(520px,92vw);height:min(520px,92vw);">
 
                     <!-- Minute ring background (teal) -->
-                    <circle cx="170" cy="170" r="165" fill="#7ec8c8" stroke="#5aabab" stroke-width="1.5"/>
+                    <circle id="clock-teal-ring" cx="170" cy="170" r="165" fill="#7ec8c8" stroke="#5aabab" stroke-width="1.5"/>
 
                     <!-- Minute labels and ticks -->
                     <g id="clock-minute-ring"></g>
@@ -291,6 +291,31 @@
 
             <!-- Digital panel -->
             <div class="flex flex-col items-center gap-5 bg-white p-7 rounded-3xl shadow-lg border border-soft-border w-full max-w-xs">
+
+                <!-- Layer toggles -->
+                <div class="w-full">
+                    <h3 class="text-sm font-bold text-soft-muted uppercase tracking-widest mb-3">Lager</h3>
+                    <div class="flex flex-col gap-2 w-full">
+                        <button id="clock-layer-btn-1" onclick="toggleClockLayer('layer1')"
+                            class="w-full py-2.5 rounded-lg font-bold text-sm border transition-colors"
+                            style="background:#1a2e5a;color:white;border-color:#1a2e5a;">
+                            Timmar 1–12
+                        </button>
+                        <button id="clock-layer-btn-2" onclick="toggleClockLayer('layer2')"
+                            class="w-full py-2.5 rounded-lg font-bold text-sm border transition-colors"
+                            style="background:#f4f3ef;color:#4a4b50;border-color:#d6d4d0;">
+                            + Timmar 13–24
+                        </button>
+                        <button id="clock-layer-btn-3" onclick="toggleClockLayer('layer3')"
+                            class="w-full py-2.5 rounded-lg font-bold text-sm border transition-colors"
+                            style="background:#f4f3ef;color:#4a4b50;border-color:#d6d4d0;">
+                            + Minuter (+5, +10…)
+                        </button>
+                    </div>
+                </div>
+
+                <hr class="w-full" style="border-color:#d6d4d0;">
+
                 <h3 class="text-sm font-bold text-soft-muted uppercase tracking-widest">Digital tid</h3>
 
                 <!-- Förmiddag display (AM, 00:00–11:59) -->
@@ -1380,6 +1405,40 @@
     let clockTime = new Date(); clockTime.setHours(10, 10, 0, 0);
     let clockTotalMinutes = 10 * 60 + 10; // track as float to avoid Date rounding issues
 
+    // Layer visibility: layer1=1-12, layer2=13-24, layer3=minute ring
+    let clockLayers = { layer1: true, layer2: false, layer3: false };
+
+    function toggleClockLayer(layer) {
+        clockLayers[layer] = !clockLayers[layer];
+        applyClockLayers();
+    }
+
+    function applyClockLayers() {
+        const g12      = document.getElementById('clock-numbers-12');
+        const g24      = document.getElementById('clock-numbers-24');
+        const tealRing = document.getElementById('clock-teal-ring');
+        const minRing  = document.getElementById('clock-minute-ring');
+
+        if (g12)      g12.style.display      = clockLayers.layer1 ? '' : 'none';
+        if (g24)      g24.style.display      = clockLayers.layer2 ? '' : 'none';
+        if (tealRing) tealRing.style.display = clockLayers.layer3 ? '' : 'none';
+        if (minRing)  minRing.style.display  = clockLayers.layer3 ? '' : 'none';
+
+        // Update button visuals
+        const styles = [
+            { id: 'clock-layer-btn-1', active: clockLayers.layer1, color: '#1a2e5a' },
+            { id: 'clock-layer-btn-2', active: clockLayers.layer2, color: '#c07000' },
+            { id: 'clock-layer-btn-3', active: clockLayers.layer3, color: '#1a6060' },
+        ];
+        styles.forEach(({ id, active, color }) => {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+            btn.style.background   = active ? color  : '#f4f3ef';
+            btn.style.color        = active ? 'white' : '#4a4b50';
+            btn.style.borderColor  = active ? color  : '#d6d4d0';
+        });
+    }
+
     // Convert degrees (0=top, clockwise) to x,y on circle of given radius centred at cx,cy
     function clockXY(cx, cy, r, deg) {
         const rad = (deg - 90) * Math.PI / 180;
@@ -1390,6 +1449,7 @@
 
     function initClock() {
         drawClockFace();
+        applyClockLayers();
         updateClockView();
         // Drag setup deferred — SVG must be visible for getScreenCTM() to work
     }
