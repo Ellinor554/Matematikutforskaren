@@ -78,6 +78,34 @@
         .line-dot { cursor: pointer; transition: r 0.2s; }
         .line-dot:hover { r: 8; }
         .drag-handle-bar { position: absolute; top: 0; left: 0; right: 0; height: 100%; cursor: ns-resize; }
+
+        /* ── Koordinatsystem – smartboard / presentationsläge ── */
+        #koord-sidebar { transition: transform 0.28s cubic-bezier(0.4,0,0.2,1), width 0.28s; }
+        #koord-float-panel {
+            position: fixed; top: 14px; right: 14px; z-index: 600;
+            display: none; flex-direction: column; gap: 8px; align-items: flex-end;
+        }
+        .koord-presenting #koord-float-panel { display: flex; }
+        /* In fullscreen hide the app header so only the view is visible */
+        :fullscreen header,  :-webkit-full-screen header  { display: none !important; }
+        :fullscreen #view-koordinat, :-webkit-full-screen #view-koordinat { height: 100vh !important; }
+        /* Sidebar slides off-screen in presentation mode */
+        .koord-presenting #koord-sidebar {
+            position: fixed !important; top: 0; left: 0; bottom: 0;
+            z-index: 500; box-shadow: 4px 0 24px rgba(0,0,0,0.18);
+            transform: translateX(-110%);
+        }
+        .koord-presenting.koord-sidebar-visible #koord-sidebar { transform: translateX(0); }
+        /* SVG expands to fill available space in fullscreen */
+        :fullscreen #koord-svg, :-webkit-full-screen #koord-svg {
+            width: min(96vw, 94vh) !important;
+            height: min(96vw, 94vh) !important;
+        }
+        /* Larger point circles & labels when presenting */
+        .koord-presenting .koord-float-btn {
+            padding: 10px 18px; font-size: 15px; border-radius: 14px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+        }
     </style>
 </head>
 <body class="text-soft-text flex flex-col h-screen">
@@ -443,8 +471,17 @@
 
         <!-- COORDINATE SYSTEM VIEW -->
         <section id="view-koordinat" class="view-section flex-row h-full">
+            <!-- Floating panel (visible only in presentation / fullscreen mode) -->
+            <div id="koord-float-panel">
+                <button onclick="toggleKoordSidebar()" aria-expanded="false" class="koord-float-btn bg-white border border-soft-border rounded-xl px-3 py-2 text-sm font-bold text-soft-purple flex items-center gap-2 shadow-lg hover:bg-soft-purpleLight/10 transition-colors" title="Visa/dölj kontroller">
+                    <i class="fas fa-sliders-h text-base"></i><span id="koord-ctrl-lbl">Kontroller</span>
+                </button>
+                <button onclick="toggleKoordFullscreen()" class="koord-float-btn bg-white border border-soft-border rounded-xl px-3 py-2 text-sm font-bold text-soft-text flex items-center gap-2 shadow-lg hover:bg-soft-bg transition-colors" title="Avsluta helskärm">
+                    <i class="fas fa-compress text-base"></i> Avsluta
+                </button>
+            </div>
             <!-- Sidebar -->
-            <div class="w-64 bg-soft-surface shadow-md z-10 p-5 flex flex-col gap-4 overflow-y-auto border-r border-soft-border shrink-0">
+            <div id="koord-sidebar" class="w-64 bg-soft-surface shadow-md z-10 p-5 flex flex-col gap-4 overflow-y-auto border-r border-soft-border shrink-0">
                 <h3 class="font-bold text-soft-text text-sm uppercase tracking-wider text-soft-muted">Koordinatsystem</h3>
                 <!-- Mode buttons -->
                 <div class="flex flex-col gap-2">
@@ -585,6 +622,12 @@
 
     function switchView(viewId) {
         if(currentView==='counting' && viewId!=='counting') document.querySelectorAll('.ten-friend-item').forEach(e=>e.remove());
+        // Exit presentation mode when leaving the coordinate view
+        if (currentView==='koordinat' && viewId!=='koordinat') {
+            if (document.fullscreenElement) document.exitFullscreen();
+            document.body.classList.remove('koord-presenting','koord-sidebar-visible');
+            document.getElementById('controls-area').innerHTML = '';
+        }
         document.querySelectorAll('.view-section').forEach(el=>el.classList.remove('active'));
         document.getElementById(`view-${viewId}`).classList.add('active');
         const btnHome = document.getElementById('btn-home');
@@ -601,7 +644,14 @@
             if (viewId==='counting') setTimeout(()=>{ if(countingMode==='friends') initTenFriends(); else buildMathGrid(countingMode==='multiplication'); },100);
             if (viewId==='statistics') setTimeout(renderChart, 50);
             if (viewId==='clock') setTimeout(initClockDragIfNeeded, 50);
-            if (viewId==='koordinat') setTimeout(renderKoord, 50);
+            if (viewId==='koordinat') {
+                setTimeout(renderKoord, 50);
+                // Add fullscreen/smartboard button to the header controls area
+                document.getElementById('controls-area').innerHTML =
+                    `<button onclick="toggleKoordFullscreen()" id="koord-fs-btn" class="flex items-center gap-2 px-4 py-2 bg-soft-purple text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-sm">
+                        <i class="fas fa-expand"></i> Helskärm
+                    </button>`;
+            }
         }
         currentView = viewId;
     }
@@ -2036,6 +2086,18 @@
         const { min, max } = getKoordRange();
         const showGrid = document.getElementById('koord-show-grid')?.checked !== false;
         const showLabels = document.getElementById('koord-show-labels')?.checked !== false;
+        // Use larger visual elements when in presentation/fullscreen mode
+        const presenting = document.body.classList.contains('koord-presenting');
+        const numFontSize = presenting ? 16 : 12;
+        const axisLabelSize = presenting ? 22 : 16;
+        const tickWidth = presenting ? 2.5 : 1.5;
+        const tickLen = presenting ? 7 : 5;
+        const pointR = presenting ? 12 : 8;
+        const pointRDrag = presenting ? 15 : 10;
+        const ptLabelSize = presenting ? 17 : 13;
+        const axisStrokeW = presenting ? 3 : 2;
+        const gridStrokeW = presenting ? 1.2 : 0.8;
+
         const { sx: ox, sy: oy } = koordToSvg(0, 0);
         const pad = 52, size = 600;
 
@@ -2047,8 +2109,8 @@
             const { sy } = koordToSvg(0, v);
             const isAxis = v === 0;
             if (showGrid || isAxis) {
-                h += `<line x1="${sx}" y1="${pad}" x2="${sx}" y2="${size-pad}" stroke="${isAxis ? '#8c8d92' : '#e8e5e0'}" stroke-width="${isAxis ? 2 : 0.8}"/>`;
-                h += `<line x1="${pad}" y1="${sy}" x2="${size-pad}" y2="${sy}" stroke="${isAxis ? '#8c8d92' : '#e8e5e0'}" stroke-width="${isAxis ? 2 : 0.8}"/>`;
+                h += `<line x1="${sx}" y1="${pad}" x2="${sx}" y2="${size-pad}" stroke="${isAxis ? '#8c8d92' : '#e8e5e0'}" stroke-width="${isAxis ? axisStrokeW : gridStrokeW}"/>`;
+                h += `<line x1="${pad}" y1="${sy}" x2="${size-pad}" y2="${sy}" stroke="${isAxis ? '#8c8d92' : '#e8e5e0'}" stroke-width="${isAxis ? axisStrokeW : gridStrokeW}"/>`;
             }
         }
 
@@ -2056,22 +2118,22 @@
         for (let v = min; v <= max; v++) {
             const { sx } = koordToSvg(v, 0);
             const { sy } = koordToSvg(0, v);
-            h += `<line x1="${sx}" y1="${oy-5}" x2="${sx}" y2="${oy+5}" stroke="#4a4b50" stroke-width="1.5"/>`;
-            h += `<line x1="${ox-5}" y1="${sy}" x2="${ox+5}" y2="${sy}" stroke="#4a4b50" stroke-width="1.5"/>`;
+            h += `<line x1="${sx}" y1="${oy-tickLen}" x2="${sx}" y2="${oy+tickLen}" stroke="#4a4b50" stroke-width="${tickWidth}"/>`;
+            h += `<line x1="${ox-tickLen}" y1="${sy}" x2="${ox+tickLen}" y2="${sy}" stroke="#4a4b50" stroke-width="${tickWidth}"/>`;
             if (v !== 0) {
-                h += `<text x="${sx}" y="${oy+20}" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" fill="#4a4b50" font-weight="600">${v}</text>`;
-                h += `<text x="${ox-10}" y="${sy+5}" text-anchor="end" font-family="Nunito,sans-serif" font-size="12" fill="#4a4b50" font-weight="600">${v}</text>`;
+                h += `<text x="${sx}" y="${oy+20}" text-anchor="middle" font-family="Nunito,sans-serif" font-size="${numFontSize}" fill="#4a4b50" font-weight="600">${v}</text>`;
+                h += `<text x="${ox-10}" y="${sy+5}" text-anchor="end" font-family="Nunito,sans-serif" font-size="${numFontSize}" fill="#4a4b50" font-weight="600">${v}</text>`;
             }
         }
         // Origin label
-        h += `<text x="${ox-10}" y="${oy+20}" text-anchor="end" font-family="Nunito,sans-serif" font-size="12" fill="#4a4b50" font-weight="600">0</text>`;
+        h += `<text x="${ox-10}" y="${oy+20}" text-anchor="end" font-family="Nunito,sans-serif" font-size="${numFontSize}" fill="#4a4b50" font-weight="600">0</text>`;
 
         // Axis arrows
         h += `<polygon points="${size-pad+2},${oy} ${size-pad-8},${oy-5} ${size-pad-8},${oy+5}" fill="#4a4b50"/>`;
         h += `<polygon points="${ox},${pad-2} ${ox-5},${pad+8} ${ox+5},${pad+8}" fill="#4a4b50"/>`;
         // Axis labels
-        h += `<text x="${size-pad+12}" y="${oy+5}" font-family="Nunito,sans-serif" font-size="16" fill="#4a4b50" font-weight="800">x</text>`;
-        h += `<text x="${ox}" y="${pad-12}" text-anchor="middle" font-family="Nunito,sans-serif" font-size="16" fill="#4a4b50" font-weight="800">y</text>`;
+        h += `<text x="${size-pad+12}" y="${oy+5}" font-family="Nunito,sans-serif" font-size="${axisLabelSize}" fill="#4a4b50" font-weight="800">x</text>`;
+        h += `<text x="${ox}" y="${pad-12}" text-anchor="middle" font-family="Nunito,sans-serif" font-size="${axisLabelSize}" fill="#4a4b50" font-weight="800">y</text>`;
 
         // Points (render below labels, circles on top)
         koordPoints.forEach((pt, idx) => {
@@ -2079,9 +2141,9 @@
             if (sx < pad-10 || sx > size-pad+10 || sy < pad-10 || sy > size-pad+10) return;
             const color = KOORD_COLORS[idx % KOORD_COLORS.length];
             const isDragged = koordDrag && koordDrag.id === pt.id;
-            h += `<circle cx="${sx}" cy="${sy}" r="${isDragged ? 10 : 8}" fill="${color}" stroke="white" stroke-width="2.5" class="koord-point" data-id="${pt.id}" style="cursor:grab;"/>`;
+            h += `<circle cx="${sx}" cy="${sy}" r="${isDragged ? pointRDrag : pointR}" fill="${color}" stroke="white" stroke-width="2.5" class="koord-point" data-id="${pt.id}" style="cursor:grab;"/>`;
             if (showLabels) {
-                h += `<text x="${sx+13}" y="${sy-10}" font-family="Nunito,sans-serif" font-size="13" fill="${color}" font-weight="800">${pt.label} (${pt.x}, ${pt.y})</text>`;
+                h += `<text x="${sx + pointR + 5}" y="${sy-10}" font-family="Nunito,sans-serif" font-size="${ptLabelSize}" fill="${color}" font-weight="800">${pt.label} (${pt.x}, ${pt.y})</text>`;
             }
         });
 
@@ -2213,6 +2275,42 @@
             list.appendChild(row);
         });
     }
+
+    // ─── Smartboard / Presentation mode ───────────────────────────────────────
+
+    function toggleKoordFullscreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+            document.exitFullscreen();
+        }
+    }
+
+    function toggleKoordSidebar() {
+        const isVisible = document.body.classList.toggle('koord-sidebar-visible');
+        const lbl = document.getElementById('koord-ctrl-lbl');
+        if (lbl) lbl.textContent = isVisible ? 'Dölj' : 'Kontroller';
+        const btn = document.querySelector('#koord-float-panel button[onclick="toggleKoordSidebar()"]');
+        if (btn) btn.setAttribute('aria-expanded', isVisible ? 'true' : 'false');
+    }
+
+    document.addEventListener('fullscreenchange', () => {
+        const isFs = !!document.fullscreenElement;
+        document.body.classList.toggle('koord-presenting', isFs);
+        if (!isFs) {
+            document.body.classList.remove('koord-sidebar-visible');
+            const lbl = document.getElementById('koord-ctrl-lbl');
+            if (lbl) lbl.textContent = 'Kontroller';
+        }
+        // Re-render so SVG adapts to new size (fullscreen transition needs slightly longer delay)
+        setTimeout(renderKoord, 80);
+        const btn = document.getElementById('koord-fs-btn');
+        if (btn) {
+            btn.innerHTML = isFs
+                ? '<i class="fas fa-compress"></i> Avsluta helskärm'
+                : '<i class="fas fa-expand"></i> Helskärm';
+        }
+    });
 
     // ===================== POSITIONSSYSTEM =====================
     function initPosSystem() {
