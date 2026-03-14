@@ -272,29 +272,36 @@
                             style="background:#f4f3ef;color:#4a4b50;border-color:#d6d4d0;">
                             + Minuter (+5, +10…)
                         </button>
+                        <button id="clock-layer-btn-4" onclick="toggleClockLayer('layer4')"
+                            class="w-full py-2.5 rounded-lg font-bold text-sm border transition-colors"
+                            style="background:#6d28d9;color:white;border-color:#6d28d9;">
+                            Digital klocka
+                        </button>
                     </div>
                 </div>
 
-                <hr class="w-full" style="border-color:#d6d4d0;">
+                <div id="clock-digital-section" class="w-full flex flex-col items-center gap-5">
+                    <hr class="w-full" style="border-color:#d6d4d0;">
 
-                <h3 class="text-sm font-bold text-soft-muted uppercase tracking-widest">Digital tid</h3>
+                    <h3 class="text-sm font-bold text-soft-muted uppercase tracking-widest">Digital tid</h3>
 
-                <!-- Förmiddag display (AM, 00:00–11:59) -->
-                <div id="panel-fm" class="w-full rounded-2xl border-2 p-4 transition-all" style="border-color:#d6d4d0; opacity:0.45;">
-                    <div class="text-xs font-bold mb-2 uppercase tracking-wider" style="color:#1a2e5a;">Förmiddag</div>
-                    <div class="text-4xl font-mono font-bold flex items-center gap-1" style="color:#1a2e5a;">
-                        <span id="digital-h-fm">10</span><span class="opacity-40 text-2xl pb-1">:</span><span id="digital-m-fm">00</span>
+                    <!-- Förmiddag display (AM, 00:00–11:59) -->
+                    <div id="panel-fm" class="w-full rounded-2xl border-2 p-4 transition-all" style="border-color:#d6d4d0; opacity:0.45;">
+                        <div class="text-xs font-bold mb-2 uppercase tracking-wider" style="color:#1a2e5a;">Förmiddag</div>
+                        <div class="text-4xl font-mono font-bold flex items-center gap-1" style="color:#1a2e5a;">
+                            <span id="digital-h-fm">10</span><span class="opacity-40 text-2xl pb-1">:</span><span id="digital-m-fm">00</span>
+                        </div>
+                        <div class="text-xs text-soft-muted mt-1 font-semibold">00:00 – 11:59</div>
                     </div>
-                    <div class="text-xs text-soft-muted mt-1 font-semibold">00:00 – 11:59</div>
-                </div>
 
-                <!-- Eftermiddag display (PM, 12:00–23:59) -->
-                <div id="panel-em" class="w-full rounded-2xl border-2 p-4 transition-all" style="border-color:#d6d4d0; opacity:0.45;">
-                    <div class="text-xs font-bold mb-2 uppercase tracking-wider" style="color:#1a2e5a;">Eftermiddag</div>
-                    <div class="text-4xl font-mono font-bold flex items-center gap-1" style="color:#1a2e5a;">
-                        <span id="digital-h-em">22</span><span class="opacity-40 text-2xl pb-1">:</span><span id="digital-m-em">00</span>
+                    <!-- Eftermiddag display (PM, 12:00–23:59) -->
+                    <div id="panel-em" class="w-full rounded-2xl border-2 p-4 transition-all" style="border-color:#d6d4d0; opacity:0.45;">
+                        <div class="text-xs font-bold mb-2 uppercase tracking-wider" style="color:#1a2e5a;">Eftermiddag</div>
+                        <div class="text-4xl font-mono font-bold flex items-center gap-1" style="color:#1a2e5a;">
+                            <span id="digital-h-em">22</span><span class="opacity-40 text-2xl pb-1">:</span><span id="digital-m-em">00</span>
+                        </div>
+                        <div class="text-xs text-soft-muted mt-1 font-semibold">12:00 – 23:59</div>
                     </div>
-                    <div class="text-xs text-soft-muted mt-1 font-semibold">12:00 – 23:59</div>
                 </div>
 
                 <!-- Buttons -->
@@ -1425,8 +1432,8 @@
     let clockTime = new Date(); clockTime.setHours(10, 10, 0, 0);
     let clockTotalMinutes = 10 * 60 + 10; // track as float to avoid Date rounding issues
 
-    // Layer visibility: layer1=1-12, layer2=13-24, layer3=minute ring
-    let clockLayers = { layer1: true, layer2: false, layer3: false };
+    // Layer visibility: layer1=1-12, layer2=13-24, layer3=minute ring, layer4=digital clock
+    let clockLayers = { layer1: true, layer2: false, layer3: false, layer4: true };
 
     function toggleClockLayer(layer) {
         clockLayers[layer] = !clockLayers[layer];
@@ -1434,21 +1441,24 @@
     }
 
     function applyClockLayers() {
-        const g12      = document.getElementById('clock-numbers-12');
-        const g24      = document.getElementById('clock-numbers-24');
-        const tealRing = document.getElementById('clock-teal-ring');
-        const minRing  = document.getElementById('clock-minute-ring');
+        const g12         = document.getElementById('clock-numbers-12');
+        const g24         = document.getElementById('clock-numbers-24');
+        const tealRing    = document.getElementById('clock-teal-ring');
+        const minRing     = document.getElementById('clock-minute-ring');
+        const digitalSect = document.getElementById('clock-digital-section');
 
-        if (g12)      g12.style.display      = clockLayers.layer1 ? '' : 'none';
-        if (g24)      g24.style.display      = clockLayers.layer2 ? '' : 'none';
-        if (tealRing) tealRing.style.display = clockLayers.layer3 ? '' : 'none';
-        if (minRing)  minRing.style.display  = clockLayers.layer3 ? '' : 'none';
+        if (g12)         g12.style.display         = clockLayers.layer1 ? '' : 'none';
+        if (g24)         g24.style.display         = clockLayers.layer2 ? '' : 'none';
+        if (tealRing)    tealRing.style.display    = clockLayers.layer3 ? '' : 'none';
+        if (minRing)     minRing.style.display     = clockLayers.layer3 ? '' : 'none';
+        if (digitalSect) digitalSect.style.display = clockLayers.layer4 ? '' : 'none';
 
         // Update button visuals
         const styles = [
             { id: 'clock-layer-btn-1', active: clockLayers.layer1, color: '#1a2e5a' },
             { id: 'clock-layer-btn-2', active: clockLayers.layer2, color: '#c07000' },
             { id: 'clock-layer-btn-3', active: clockLayers.layer3, color: '#1a6060' },
+            { id: 'clock-layer-btn-4', active: clockLayers.layer4, color: '#6d28d9' },
         ];
         styles.forEach(({ id, active, color }) => {
             const btn = document.getElementById(id);
