@@ -249,48 +249,9 @@
 
         <!-- CLOCK VIEW -->
         <section id="view-clock" class="view-section flex-col md:flex-row h-full items-center justify-center bg-soft-bg gap-10 p-6 overflow-auto">
-            <!-- Analog Clock -->
-            <div class="flex items-center justify-center select-none shrink-0">
-                <svg id="analog-clock" viewBox="0 0 340 340" style="width:min(520px,92vw);height:min(520px,92vw);">
 
-                    <!-- Minute ring background (teal) -->
-                    <circle id="clock-teal-ring" cx="170" cy="170" r="165" fill="#7ec8c8" stroke="#5aabab" stroke-width="1.5"/>
-
-                    <!-- Minute labels and ticks -->
-                    <g id="clock-minute-ring"></g>
-
-                    <!-- Main clock face -->
-                    <circle cx="170" cy="170" r="138" fill="white" stroke="#e8e5e0" stroke-width="2"/>
-
-                    <!-- Inner tick marks -->
-                    <g id="clock-ticks"></g>
-
-                    <!-- 24h numbers (outer, orange/amber) -->
-                    <g id="clock-numbers-24"></g>
-
-                    <!-- 12h numbers (inner, dark blue) -->
-                    <g id="clock-numbers-12"></g>
-
-                    <!-- Hour hand -->
-                    <line id="hand-hour"
-                        x1="170" y1="170" x2="170" y2="100"
-                        stroke="#1a2e5a" stroke-width="7" stroke-linecap="round"
-                        class="clock-hand" transform="rotate(0 170 170)"/>
-
-                    <!-- Minute hand -->
-                    <line id="hand-minute"
-                        x1="170" y1="170" x2="170" y2="48"
-                        stroke="#c0392b" stroke-width="4.5" stroke-linecap="round"
-                        class="clock-hand" transform="rotate(0 170 170)"/>
-
-                    <!-- Centre dot -->
-                    <circle cx="170" cy="170" r="7" fill="#1a2e5a"/>
-                    <circle cx="170" cy="170" r="3.5" fill="#c0392b"/>
-                </svg>
-            </div>
-
-            <!-- Digital panel -->
-            <div class="flex flex-col items-center gap-5 bg-white p-7 rounded-3xl shadow-lg border border-soft-border w-full max-w-xs">
+            <!-- Digital panel (LEFT) -->
+            <div class="flex flex-col items-center gap-5 bg-white p-7 rounded-3xl shadow-lg border border-soft-border w-full max-w-xs shrink-0">
 
                 <!-- Layer toggles -->
                 <div class="w-full">
@@ -349,6 +310,65 @@
                 <p class="text-xs text-soft-muted text-center leading-relaxed">
                     <i class="fas fa-hand-pointer mr-1"></i>Dra den <span style="color:#c0392b;font-weight:700;">röda</span> minutvisaren eller den <span style="color:#1a2e5a;font-weight:700;">blå</span> timvisaren för att ändra tiden.
                 </p>
+            </div>
+
+            <!-- Analog Clock (CENTER) -->
+            <div class="flex items-center justify-center select-none shrink-0">
+                <svg id="analog-clock" viewBox="0 0 340 340" style="width:min(520px,92vw);height:min(520px,92vw);">
+
+                    <!-- Minute ring background (teal) -->
+                    <circle id="clock-teal-ring" cx="170" cy="170" r="165" fill="#7ec8c8" stroke="#5aabab" stroke-width="1.5"/>
+
+                    <!-- Minute labels and ticks -->
+                    <g id="clock-minute-ring"></g>
+
+                    <!-- Main clock face -->
+                    <circle cx="170" cy="170" r="138" fill="white" stroke="#e8e5e0" stroke-width="2"/>
+
+                    <!-- Inner tick marks -->
+                    <g id="clock-ticks"></g>
+
+                    <!-- 24h numbers (outer, orange/amber) -->
+                    <g id="clock-numbers-24"></g>
+
+                    <!-- 12h numbers (inner, dark blue) -->
+                    <g id="clock-numbers-12"></g>
+
+                    <!-- Hour hand -->
+                    <line id="hand-hour"
+                        x1="170" y1="170" x2="170" y2="100"
+                        stroke="#1a2e5a" stroke-width="7" stroke-linecap="round"
+                        class="clock-hand" transform="rotate(0 170 170)"/>
+
+                    <!-- Minute hand -->
+                    <line id="hand-minute"
+                        x1="170" y1="170" x2="170" y2="48"
+                        stroke="#c0392b" stroke-width="4.5" stroke-linecap="round"
+                        class="clock-hand" transform="rotate(0 170 170)"/>
+
+                    <!-- Centre dot -->
+                    <circle cx="170" cy="170" r="7" fill="#1a2e5a"/>
+                    <circle cx="170" cy="170" r="3.5" fill="#c0392b"/>
+                </svg>
+            </div>
+
+            <!-- Swedish time labels (RIGHT) -->
+            <div class="flex flex-col bg-white p-5 rounded-3xl shadow-lg border border-soft-border w-full max-w-xs shrink-0">
+                <h3 class="text-sm font-bold text-soft-muted uppercase tracking-widest mb-3">Vad är klockan?</h3>
+                <div class="flex flex-col gap-0.5">
+                    <div id="label-00" class="flex items-center gap-2 px-2 py-1.5 rounded-lg" style="transition:background 0.15s;"><span class="font-mono font-bold text-sm w-9" style="color:#1a6060;">:00</span><span class="text-sm font-semibold" style="color:#1a2e5a;">hel</span></div>
+                    <div id="label-05" class="flex items-center gap-2 px-2 py-1.5 rounded-lg" style="transition:background 0.15s;"><span class="font-mono font-bold text-sm w-9" style="color:#1a6060;">:05</span><span class="text-sm font-semibold" style="color:#1a2e5a;">fem över</span></div>
+                    <div id="label-10" class="flex items-center gap-2 px-2 py-1.5 rounded-lg" style="transition:background 0.15s;"><span class="font-mono font-bold text-sm w-9" style="color:#1a6060;">:10</span><span class="text-sm font-semibold" style="color:#1a2e5a;">tio över</span></div>
+                    <div id="label-15" class="flex items-center gap-2 px-2 py-1.5 rounded-lg" style="transition:background 0.15s;"><span class="font-mono font-bold text-sm w-9" style="color:#1a6060;">:15</span><span class="text-sm font-semibold" style="color:#1a2e5a;">kvart över</span></div>
+                    <div id="label-20" class="flex items-center gap-2 px-2 py-1.5 rounded-lg" style="transition:background 0.15s;"><span class="font-mono font-bold text-sm w-9" style="color:#1a6060;">:20</span><span class="text-sm font-semibold" style="color:#1a2e5a;">tjugo över</span></div>
+                    <div id="label-25" class="flex items-center gap-2 px-2 py-1.5 rounded-lg" style="transition:background 0.15s;"><span class="font-mono font-bold text-sm w-9" style="color:#1a6060;">:25</span><span class="text-sm font-semibold" style="color:#1a2e5a;">fem i halv</span></div>
+                    <div id="label-30" class="flex items-center gap-2 px-2 py-1.5 rounded-lg" style="transition:background 0.15s;"><span class="font-mono font-bold text-sm w-9" style="color:#1a6060;">:30</span><span class="text-sm font-semibold" style="color:#1a2e5a;">halv</span></div>
+                    <div id="label-35" class="flex items-center gap-2 px-2 py-1.5 rounded-lg" style="transition:background 0.15s;"><span class="font-mono font-bold text-sm w-9" style="color:#1a6060;">:35</span><span class="text-sm font-semibold" style="color:#1a2e5a;">fem över halv</span></div>
+                    <div id="label-40" class="flex items-center gap-2 px-2 py-1.5 rounded-lg" style="transition:background 0.15s;"><span class="font-mono font-bold text-sm w-9" style="color:#1a6060;">:40</span><span class="text-sm font-semibold" style="color:#1a2e5a;">tjugo i</span></div>
+                    <div id="label-45" class="flex items-center gap-2 px-2 py-1.5 rounded-lg" style="transition:background 0.15s;"><span class="font-mono font-bold text-sm w-9" style="color:#1a6060;">:45</span><span class="text-sm font-semibold" style="color:#1a2e5a;">kvart i</span></div>
+                    <div id="label-50" class="flex items-center gap-2 px-2 py-1.5 rounded-lg" style="transition:background 0.15s;"><span class="font-mono font-bold text-sm w-9" style="color:#1a6060;">:50</span><span class="text-sm font-semibold" style="color:#1a2e5a;">tio i</span></div>
+                    <div id="label-55" class="flex items-center gap-2 px-2 py-1.5 rounded-lg" style="transition:background 0.15s;"><span class="font-mono font-bold text-sm w-9" style="color:#1a6060;">:55</span><span class="text-sm font-semibold" style="color:#1a2e5a;">fem i</span></div>
+                </div>
             </div>
         </section>
 
@@ -1648,8 +1668,9 @@
             panelFM.style.background = 'white';
         }
 
-        // Highlight minute bubble in ring
+        // Highlight minute bubble in ring and Swedish label
         highlightMinuteBubble(m);
+        highlightSwedishLabel(m);
     }
 
     function highlightMinuteBubble(currentMinute) {
@@ -1669,6 +1690,16 @@
             bubbles[bubbleIndex].setAttribute('fill','#ffe066');
             bubbles[bubbleIndex].setAttribute('opacity','1');
         }
+    }
+
+    function highlightSwedishLabel(currentMinute) {
+        const nearest5 = (Math.round(currentMinute / 5) * 5) % 60;
+        const ids = ['00','05','10','15','20','25','30','35','40','45','50','55'];
+        ids.forEach(id => {
+            const el = document.getElementById('label-' + id);
+            if (!el) return;
+            el.style.background = parseInt(id, 10) === nearest5 ? '#ffe066' : '';
+        });
     }
 
     function adjustTime(minutes) {
