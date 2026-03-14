@@ -106,6 +106,99 @@
             padding: 10px 18px; font-size: 15px; border-radius: 14px;
             box-shadow: 0 4px 16px rgba(0,0,0,0.18);
         }
+
+        /* ── All views – fullscreen height ── */
+        :fullscreen .view-section.active, :-webkit-full-screen .view-section.active { height: 100vh !important; }
+
+        /* ── Generic float panel shared by all views ── */
+        .view-float-panel {
+            position: fixed; top: 14px; right: 14px; z-index: 600;
+            display: none; flex-direction: column; gap: 8px; align-items: flex-end;
+        }
+        /* Enlarge float buttons in fullscreen */
+        .fractions-presenting .view-float-btn, .numberlines-presenting .view-float-btn,
+        .geometry-presenting .view-float-btn, .counting-presenting .view-float-btn,
+        .clock-presenting .view-float-btn, .statistics-presenting .view-float-btn,
+        .positionssystem-presenting .view-float-btn {
+            padding: 10px 18px; font-size: 15px; border-radius: 14px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+        }
+
+        /* ── Fractions – smartboard mode ── */
+        #fractions-sidebar { transition: transform 0.28s cubic-bezier(0.4,0,0.2,1); }
+        .fractions-presenting #fractions-float-panel { display: flex; }
+        .fractions-presenting #fractions-sidebar {
+            position: fixed !important; top: 0; left: 0; bottom: 0;
+            z-index: 500; box-shadow: 4px 0 24px rgba(0,0,0,0.18);
+            transform: translateX(-110%);
+        }
+        .fractions-presenting.fractions-sidebar-visible #fractions-sidebar { transform: translateX(0); }
+
+        /* ── Numberlines – smartboard mode ── */
+        #numberlines-topbar { transition: transform 0.28s cubic-bezier(0.4,0,0.2,1); }
+        .numberlines-presenting #numberlines-float-panel { display: flex; }
+        .numberlines-presenting #numberlines-topbar {
+            position: fixed !important; top: 0; left: 0; right: 0;
+            z-index: 500; box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+            transform: translateY(-110%);
+        }
+        .numberlines-presenting.numberlines-sidebar-visible #numberlines-topbar { transform: translateY(0); }
+
+        /* ── Geometry – smartboard mode ── */
+        #geometry-sidebar { transition: transform 0.28s cubic-bezier(0.4,0,0.2,1); }
+        .geometry-presenting #geometry-float-panel { display: flex; }
+        .geometry-presenting #geometry-sidebar {
+            position: fixed !important; top: 0; left: 0; bottom: 0;
+            z-index: 500; box-shadow: 4px 0 24px rgba(0,0,0,0.18);
+            transform: translateX(-110%);
+        }
+        .geometry-presenting.geometry-sidebar-visible #geometry-sidebar { transform: translateX(0); }
+
+        /* ── Counting – smartboard mode ── */
+        #counting-topbar { transition: transform 0.28s cubic-bezier(0.4,0,0.2,1); }
+        .counting-presenting #counting-float-panel { display: flex; }
+        .counting-presenting #counting-topbar {
+            position: fixed !important; top: 0; left: 0; right: 0;
+            z-index: 500; box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+            transform: translateY(-110%);
+        }
+        .counting-presenting.counting-sidebar-visible #counting-topbar { transform: translateY(0); }
+
+        /* ── Clock – smartboard mode ── */
+        #clock-left-panel, #clock-right-panel {
+            transition: opacity 0.28s cubic-bezier(0.4,0,0.2,1), transform 0.28s cubic-bezier(0.4,0,0.2,1);
+        }
+        .clock-presenting #clock-float-panel { display: flex; }
+        .clock-presenting #clock-left-panel, .clock-presenting #clock-right-panel {
+            opacity: 0; pointer-events: none; transform: scale(0.92);
+        }
+        .clock-presenting.clock-sidebar-visible #clock-left-panel,
+        .clock-presenting.clock-sidebar-visible #clock-right-panel {
+            opacity: 1; pointer-events: auto; transform: scale(1);
+        }
+        :fullscreen #analog-clock, :-webkit-full-screen #analog-clock {
+            width: min(90vw, 82vh) !important; height: min(90vw, 82vh) !important;
+        }
+
+        /* ── Statistics – smartboard mode ── */
+        #statistics-sidebar { transition: transform 0.28s cubic-bezier(0.4,0,0.2,1); }
+        .statistics-presenting #statistics-float-panel { display: flex; }
+        .statistics-presenting #statistics-sidebar {
+            position: fixed !important; top: 0; left: 0; bottom: 0;
+            z-index: 500; box-shadow: 4px 0 24px rgba(0,0,0,0.18);
+            transform: translateX(-110%);
+        }
+        .statistics-presenting.statistics-sidebar-visible #statistics-sidebar { transform: translateX(0); }
+
+        /* ── Positionssystem – smartboard mode ── */
+        #positionssystem-sidebar { transition: transform 0.28s cubic-bezier(0.4,0,0.2,1); }
+        .positionssystem-presenting #positionssystem-float-panel { display: flex; }
+        .positionssystem-presenting #positionssystem-sidebar {
+            position: fixed !important; top: 0; left: 0; bottom: 0;
+            z-index: 500; box-shadow: 4px 0 24px rgba(0,0,0,0.18);
+            transform: translateX(-110%);
+        }
+        .positionssystem-presenting.positionssystem-sidebar-visible #positionssystem-sidebar { transform: translateX(0); }
     </style>
 </head>
 <body class="text-soft-text flex flex-col h-screen">
@@ -173,7 +266,16 @@
 
         <!-- FRACTIONS VIEW -->
         <section id="view-fractions" class="view-section flex-row h-full">
-            <div class="w-64 bg-soft-surface shadow-md z-10 p-5 flex flex-col gap-4 overflow-y-auto border-r border-soft-border shrink-0">
+            <!-- Floating panel (visible only in presentation / fullscreen mode) -->
+            <div id="fractions-float-panel" class="view-float-panel">
+                <button onclick="toggleViewSidebar('fractions')" aria-expanded="false" class="view-float-btn bg-white border border-soft-border rounded-xl px-3 py-2 text-sm font-bold text-soft-pink flex items-center gap-2 shadow-lg hover:bg-soft-pinkLight/10 transition-colors" title="Visa/dölj kontroller">
+                    <i class="fas fa-sliders-h text-base"></i><span id="fractions-ctrl-lbl">Kontroller</span>
+                </button>
+                <button onclick="toggleViewFullscreen()" class="view-float-btn bg-white border border-soft-border rounded-xl px-3 py-2 text-sm font-bold text-soft-text flex items-center gap-2 shadow-lg hover:bg-soft-bg transition-colors" title="Avsluta helskärm">
+                    <i class="fas fa-compress text-base"></i> Avsluta
+                </button>
+            </div>
+            <div id="fractions-sidebar" class="w-64 bg-soft-surface shadow-md z-10 p-5 flex flex-col gap-4 overflow-y-auto border-r border-soft-border shrink-0">
                 <h3 class="font-bold text-soft-text text-sm uppercase tracking-wider text-soft-muted">Lägg till cirkel</h3>
                 <div class="flex flex-col gap-2" id="fraction-buttons"></div>
                 <hr class="border-soft-border"/>
@@ -189,7 +291,16 @@
 
         <!-- NUMBER LINES VIEW -->
         <section id="view-numberlines" class="view-section flex-col h-full bg-soft-surface">
-            <div class="flex justify-center gap-4 p-4 bg-soft-bg border-b border-soft-border shrink-0 flex-wrap">
+            <!-- Floating panel (visible only in presentation / fullscreen mode) -->
+            <div id="numberlines-float-panel" class="view-float-panel">
+                <button onclick="toggleViewSidebar('numberlines')" aria-expanded="false" class="view-float-btn bg-white border border-soft-border rounded-xl px-3 py-2 text-sm font-bold text-soft-blue flex items-center gap-2 shadow-lg hover:bg-soft-blueLight/10 transition-colors" title="Visa/dölj kontroller">
+                    <i class="fas fa-sliders-h text-base"></i><span id="numberlines-ctrl-lbl">Kontroller</span>
+                </button>
+                <button onclick="toggleViewFullscreen()" class="view-float-btn bg-white border border-soft-border rounded-xl px-3 py-2 text-sm font-bold text-soft-text flex items-center gap-2 shadow-lg hover:bg-soft-bg transition-colors" title="Avsluta helskärm">
+                    <i class="fas fa-compress text-base"></i> Avsluta
+                </button>
+            </div>
+            <div id="numberlines-topbar" class="flex justify-center gap-4 p-4 bg-soft-bg border-b border-soft-border shrink-0 flex-wrap">
                 <button onclick="setNumberLine(0,10,1)" class="px-4 py-2 bg-soft-blueLight/30 text-soft-blue font-bold rounded-full hover:bg-soft-blueLight/50 whitespace-nowrap">0 till 10</button>
                 <button onclick="setNumberLine(0,100,1)" class="px-4 py-2 bg-soft-blueLight/30 text-soft-blue font-bold rounded-full hover:bg-soft-blueLight/50 whitespace-nowrap">0 till 100</button>
                 <button onclick="setNumberLine(0,3,0.1,true)" class="px-4 py-2 bg-soft-blueLight/30 text-soft-blue font-bold rounded-full hover:bg-soft-blueLight/50 whitespace-nowrap">0 till 3 (Decimaler)</button>
@@ -201,8 +312,17 @@
 
         <!-- GEOMETRY VIEW -->
         <section id="view-geometry" class="view-section flex-row h-full">
+            <!-- Floating panel (visible only in presentation / fullscreen mode) -->
+            <div id="geometry-float-panel" class="view-float-panel">
+                <button onclick="toggleViewSidebar('geometry')" aria-expanded="false" class="view-float-btn bg-white border border-soft-border rounded-xl px-3 py-2 text-sm font-bold text-soft-green flex items-center gap-2 shadow-lg hover:bg-soft-greenLight/10 transition-colors" title="Visa/dölj kontroller">
+                    <i class="fas fa-sliders-h text-base"></i><span id="geometry-ctrl-lbl">Kontroller</span>
+                </button>
+                <button onclick="toggleViewFullscreen()" class="view-float-btn bg-white border border-soft-border rounded-xl px-3 py-2 text-sm font-bold text-soft-text flex items-center gap-2 shadow-lg hover:bg-soft-bg transition-colors" title="Avsluta helskärm">
+                    <i class="fas fa-compress text-base"></i> Avsluta
+                </button>
+            </div>
             <!-- Sidebar -->
-            <div class="w-64 bg-soft-surface shadow-md z-10 p-4 flex flex-col gap-3 overflow-y-auto border-r border-soft-border shrink-0">
+            <div id="geometry-sidebar" class="w-64 bg-soft-surface shadow-md z-10 p-4 flex flex-col gap-3 overflow-y-auto border-r border-soft-border shrink-0">
 
                 <!-- 2D shapes -->
                 <h3 class="font-bold text-soft-text text-xs uppercase tracking-wider text-soft-muted">2D-former</h3>
@@ -251,7 +371,16 @@
 
         <!-- COUNTING VIEW -->
         <section id="view-counting" class="view-section flex-col h-full bg-soft-surface">
-            <div class="flex justify-center gap-4 p-4 bg-soft-bg border-b border-soft-border shrink-0 flex-wrap">
+            <!-- Floating panel (visible only in presentation / fullscreen mode) -->
+            <div id="counting-float-panel" class="view-float-panel">
+                <button onclick="toggleViewSidebar('counting')" aria-expanded="false" class="view-float-btn bg-white border border-soft-border rounded-xl px-3 py-2 text-sm font-bold text-soft-yellowDark flex items-center gap-2 shadow-lg hover:bg-soft-yellow/10 transition-colors" title="Visa/dölj kontroller">
+                    <i class="fas fa-sliders-h text-base"></i><span id="counting-ctrl-lbl">Kontroller</span>
+                </button>
+                <button onclick="toggleViewFullscreen()" class="view-float-btn bg-white border border-soft-border rounded-xl px-3 py-2 text-sm font-bold text-soft-text flex items-center gap-2 shadow-lg hover:bg-soft-bg transition-colors" title="Avsluta helskärm">
+                    <i class="fas fa-compress text-base"></i> Avsluta
+                </button>
+            </div>
+            <div id="counting-topbar" class="flex justify-center gap-4 p-4 bg-soft-bg border-b border-soft-border shrink-0 flex-wrap">
                 <button onclick="setCountingMode('friends')" class="px-4 py-2 bg-soft-yellow/40 text-soft-text font-bold rounded-full hover:bg-soft-yellow/70">Tiokompisar</button>
                 <button onclick="setCountingMode('multiplication')" class="px-4 py-2 bg-soft-yellow/40 text-soft-text font-bold rounded-full hover:bg-soft-yellow/70">Multiplikationskvadrat</button>
                 <button onclick="setCountingMode('division')" class="px-4 py-2 bg-soft-yellow/40 text-soft-text font-bold rounded-full hover:bg-soft-yellow/70">Divisionskvadrat</button>
@@ -277,9 +406,18 @@
 
         <!-- CLOCK VIEW -->
         <section id="view-clock" class="view-section flex-col md:flex-row h-full items-center justify-center bg-soft-bg gap-10 p-6 overflow-auto">
+            <!-- Floating panel (visible only in presentation / fullscreen mode) -->
+            <div id="clock-float-panel" class="view-float-panel">
+                <button onclick="toggleViewSidebar('clock')" aria-expanded="false" class="view-float-btn bg-white border border-soft-border rounded-xl px-3 py-2 text-sm font-bold text-soft-purple flex items-center gap-2 shadow-lg hover:bg-soft-purpleLight/10 transition-colors" title="Visa/dölj kontroller">
+                    <i class="fas fa-sliders-h text-base"></i><span id="clock-ctrl-lbl">Kontroller</span>
+                </button>
+                <button onclick="toggleViewFullscreen()" class="view-float-btn bg-white border border-soft-border rounded-xl px-3 py-2 text-sm font-bold text-soft-text flex items-center gap-2 shadow-lg hover:bg-soft-bg transition-colors" title="Avsluta helskärm">
+                    <i class="fas fa-compress text-base"></i> Avsluta
+                </button>
+            </div>
 
             <!-- Digital panel (LEFT) -->
-            <div class="flex flex-col items-center gap-5 bg-white p-7 rounded-3xl shadow-lg border border-soft-border w-full max-w-xs shrink-0">
+            <div id="clock-left-panel" class="flex flex-col items-center gap-5 bg-white p-7 rounded-3xl shadow-lg border border-soft-border w-full max-w-xs shrink-0">
 
                 <!-- Layer toggles -->
                 <div class="w-full">
@@ -388,7 +526,7 @@
             </div>
 
             <!-- Swedish time labels (RIGHT) -->
-            <div class="flex flex-col bg-white p-5 rounded-3xl shadow-lg border border-soft-border w-full max-w-xs shrink-0">
+            <div id="clock-right-panel" class="flex flex-col bg-white p-5 rounded-3xl shadow-lg border border-soft-border w-full max-w-xs shrink-0">
                 <h3 class="text-sm font-bold text-soft-muted uppercase tracking-widest mb-3">Vad är klockan?</h3>
                 <div class="flex flex-col gap-0.5">
                     <div id="label-00" class="flex items-center gap-2 px-2 py-1.5 rounded-lg" style="transition:background 0.15s;"><span class="font-mono font-bold text-sm w-9" style="color:#1a6060;">:00</span><span class="text-sm font-semibold" style="color:#1a2e5a;">hel</span></div>
@@ -409,8 +547,17 @@
 
         <!-- STATISTICS VIEW -->
         <section id="view-statistics" class="view-section flex-row h-full">
+            <!-- Floating panel (visible only in presentation / fullscreen mode) -->
+            <div id="statistics-float-panel" class="view-float-panel">
+                <button onclick="toggleViewSidebar('statistics')" aria-expanded="false" class="view-float-btn bg-white border border-soft-border rounded-xl px-3 py-2 text-sm font-bold text-soft-teal flex items-center gap-2 shadow-lg hover:bg-soft-tealLight/10 transition-colors" title="Visa/dölj kontroller">
+                    <i class="fas fa-sliders-h text-base"></i><span id="statistics-ctrl-lbl">Kontroller</span>
+                </button>
+                <button onclick="toggleViewFullscreen()" class="view-float-btn bg-white border border-soft-border rounded-xl px-3 py-2 text-sm font-bold text-soft-text flex items-center gap-2 shadow-lg hover:bg-soft-bg transition-colors" title="Avsluta helskärm">
+                    <i class="fas fa-compress text-base"></i> Avsluta
+                </button>
+            </div>
             <!-- Sidebar -->
-            <div class="w-72 bg-soft-surface shadow-md z-10 p-5 flex flex-col gap-4 overflow-y-auto border-r border-soft-border shrink-0">
+            <div id="statistics-sidebar" class="w-72 bg-soft-surface shadow-md z-10 p-5 flex flex-col gap-4 overflow-y-auto border-r border-soft-border shrink-0">
                 <!-- Chart type tabs -->
                 <div class="flex bg-soft-bg rounded-xl p-1 gap-1">
                     <button onclick="setChartType('bar')" id="tab-bar" class="chart-tab active flex-1 py-2 rounded-lg text-xs font-bold text-soft-muted text-center">
@@ -530,7 +677,16 @@
 
         <!-- POSITIONSSYSTEM VIEW -->
         <section id="view-positionssystem" class="view-section flex-row h-full">
-            <div class="w-64 bg-soft-surface shadow-md z-10 p-5 flex flex-col gap-4 overflow-y-auto border-r border-soft-border shrink-0">
+            <!-- Floating panel (visible only in presentation / fullscreen mode) -->
+            <div id="positionssystem-float-panel" class="view-float-panel">
+                <button onclick="toggleViewSidebar('positionssystem')" aria-expanded="false" class="view-float-btn bg-white border border-soft-border rounded-xl px-3 py-2 text-sm font-bold text-soft-blue flex items-center gap-2 shadow-lg hover:bg-soft-blueLight/10 transition-colors" title="Visa/dölj kontroller">
+                    <i class="fas fa-sliders-h text-base"></i><span id="positionssystem-ctrl-lbl">Kontroller</span>
+                </button>
+                <button onclick="toggleViewFullscreen()" class="view-float-btn bg-white border border-soft-border rounded-xl px-3 py-2 text-sm font-bold text-soft-text flex items-center gap-2 shadow-lg hover:bg-soft-bg transition-colors" title="Avsluta helskärm">
+                    <i class="fas fa-compress text-base"></i> Avsluta
+                </button>
+            </div>
+            <div id="positionssystem-sidebar" class="w-64 bg-soft-surface shadow-md z-10 p-5 flex flex-col gap-4 overflow-y-auto border-r border-soft-border shrink-0">
                 <h3 class="font-bold text-soft-text text-sm uppercase tracking-wider text-soft-muted">Lägg till material</h3>
                 <div class="flex flex-col gap-2">
                     <button onclick="addPosPiece('tusental')" class="flex items-center gap-3 px-3 py-2 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 transition-colors">
@@ -621,10 +777,12 @@
 
     function switchView(viewId) {
         if(currentView==='counting' && viewId!=='counting') document.querySelectorAll('.ten-friend-item').forEach(e=>e.remove());
-        // Exit presentation mode when leaving the coordinate view
-        if (currentView==='koordinat' && viewId!=='koordinat') {
+        // Exit presentation mode when leaving any view
+        if (currentView !== 'home' && viewId !== currentView) {
             if (document.fullscreenElement) document.exitFullscreen();
-            document.body.classList.remove('koord-presenting','koord-sidebar-visible');
+            const oldPresentingClass = currentView === 'koordinat' ? 'koord-presenting' : currentView + '-presenting';
+            const oldSidebarClass = currentView === 'koordinat' ? 'koord-sidebar-visible' : currentView + '-sidebar-visible';
+            document.body.classList.remove(oldPresentingClass, oldSidebarClass);
             document.getElementById('controls-area').innerHTML = '';
         }
         document.querySelectorAll('.view-section').forEach(el=>el.classList.remove('active'));
@@ -643,14 +801,25 @@
             if (viewId==='counting') setTimeout(()=>{ if(countingMode==='friends') initTenFriends(); else buildMathGrid(countingMode==='multiplication'); },100);
             if (viewId==='statistics') setTimeout(renderChart, 50);
             if (viewId==='clock') setTimeout(initClockDragIfNeeded, 50);
-            if (viewId==='koordinat') {
-                setTimeout(renderKoord, 50);
-                // Add fullscreen/smartboard button to the header controls area
-                document.getElementById('controls-area').innerHTML =
-                    `<button onclick="toggleKoordFullscreen()" id="koord-fs-btn" class="flex items-center gap-2 px-4 py-2 bg-soft-purple text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-sm">
-                        <i class="fas fa-expand"></i> Helskärm
-                    </button>`;
-            }
+            if (viewId==='koordinat') setTimeout(renderKoord, 50);
+            // Add fullscreen/smartboard button to the header for all views
+            const fsBtnColors = {
+                fractions: 'bg-soft-pink text-white',
+                numberlines: 'bg-soft-blue text-white',
+                geometry: 'bg-soft-green text-white',
+                counting: 'bg-soft-yellowDark text-white',
+                clock: 'bg-soft-purple text-white',
+                statistics: 'bg-soft-teal text-white',
+                koordinat: 'bg-soft-purple text-white',
+                positionssystem: 'bg-soft-blue text-white'
+            };
+            const colorCls = fsBtnColors[viewId] || 'bg-soft-blue text-white';
+            const fsBtnId = viewId === 'koordinat' ? 'koord-fs-btn' : viewId + '-fs-btn';
+            const fsAction = viewId === 'koordinat' ? 'toggleKoordFullscreen()' : 'toggleViewFullscreen()';
+            document.getElementById('controls-area').innerHTML =
+                `<button onclick="${fsAction}" id="${fsBtnId}" class="flex items-center gap-2 px-4 py-2 ${colorCls} font-bold rounded-xl text-sm hover:opacity-90 transition-opacity shadow-sm">
+                    <i class="fas fa-expand"></i> Helskärm
+                </button>`;
         }
         currentView = viewId;
     }
@@ -2293,21 +2462,63 @@
         if (btn) btn.setAttribute('aria-expanded', isVisible ? 'true' : 'false');
     }
 
+    // ─── Generic smartboard helpers (all views except koordinat) ──────────────
+
+    function toggleViewFullscreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+            document.exitFullscreen();
+        }
+    }
+
+    function toggleViewSidebar(viewId) {
+        const isVisible = document.body.classList.toggle(viewId + '-sidebar-visible');
+        const lbl = document.getElementById(viewId + '-ctrl-lbl');
+        if (lbl) lbl.textContent = isVisible ? 'Dölj' : 'Kontroller';
+        const panel = document.getElementById(viewId + '-float-panel');
+        if (panel) {
+            const toggleBtn = panel.querySelector('button:first-child');
+            if (toggleBtn) toggleBtn.setAttribute('aria-expanded', isVisible ? 'true' : 'false');
+        }
+    }
+
     document.addEventListener('fullscreenchange', () => {
         const isFs = !!document.fullscreenElement;
-        document.body.classList.toggle('koord-presenting', isFs);
-        if (!isFs) {
-            document.body.classList.remove('koord-sidebar-visible');
-            const lbl = document.getElementById('koord-ctrl-lbl');
-            if (lbl) lbl.textContent = 'Kontroller';
-        }
-        // Re-render so SVG adapts to new size (fullscreen transition needs slightly longer delay)
-        setTimeout(renderKoord, 80);
-        const btn = document.getElementById('koord-fs-btn');
-        if (btn) {
-            btn.innerHTML = isFs
-                ? '<i class="fas fa-compress"></i> Avsluta helskärm'
-                : '<i class="fas fa-expand"></i> Helskärm';
+        if (currentView === 'koordinat') {
+            // Keep existing koord behaviour unchanged
+            document.body.classList.toggle('koord-presenting', isFs);
+            if (!isFs) {
+                document.body.classList.remove('koord-sidebar-visible');
+                const lbl = document.getElementById('koord-ctrl-lbl');
+                if (lbl) lbl.textContent = 'Kontroller';
+            }
+            // Re-render so SVG adapts to new size
+            setTimeout(renderKoord, 80);
+            const btn = document.getElementById('koord-fs-btn');
+            if (btn) {
+                btn.innerHTML = isFs
+                    ? '<i class="fas fa-compress"></i> Avsluta helskärm'
+                    : '<i class="fas fa-expand"></i> Helskärm';
+            }
+        } else {
+            // Generic behaviour for all other views
+            const presentingClass = currentView + '-presenting';
+            const sidebarClass = currentView + '-sidebar-visible';
+            document.body.classList.toggle(presentingClass, isFs);
+            if (!isFs) {
+                document.body.classList.remove(sidebarClass);
+                const lbl = document.getElementById(currentView + '-ctrl-lbl');
+                if (lbl) lbl.textContent = 'Kontroller';
+            }
+            const btn = document.getElementById(currentView + '-fs-btn');
+            if (btn) {
+                btn.innerHTML = isFs
+                    ? '<i class="fas fa-compress"></i> Avsluta helskärm'
+                    : '<i class="fas fa-expand"></i> Helskärm';
+            }
+            // Re-render chart so it adapts to new size
+            if (currentView === 'statistics') setTimeout(renderChart, 80);
         }
     });
 
