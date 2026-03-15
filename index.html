@@ -54,7 +54,7 @@
         #canvas-container { width: 100%; height: 100%; cursor: move; }
         .geo-btn { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:6px 4px; background:#f4f3ef; border:1px solid #d6d4d0; border-radius:10px; font-size:11px; font-weight:700; color:#4a4b50; cursor:pointer; transition:all 0.15s; }
         .geo-btn:hover { background:white; box-shadow:0 2px 8px rgba(74,75,80,0.12); }
-        .geo-3d-card { position:absolute; cursor:grab; user-select:none; touch-action:none; border-radius:12px; overflow:hidden; box-shadow:0 4px 14px rgba(74,75,80,0.18); border:2px solid #e8e5e0; background:white; transform-origin:top left; }
+        .geo-3d-card { position:absolute; cursor:grab; user-select:none; touch-action:none; transform-origin:top left; }
         .geo-3d-card:active { cursor:grabbing; }
         .geo-resize-handle { position:absolute; bottom:-4px; right:-4px; width:22px; height:22px; background:white; border:2px solid #8c8d92; border-radius:5px; cursor:nwse-resize; display:flex; align-items:center; justify-content:center; font-size:15px; color:#4a4b50; user-select:none; touch-action:none; z-index:10; font-weight:900; box-shadow:0 2px 6px rgba(0,0,0,0.15); }
         .math-grid-cell { transition: all 0.1s; }
@@ -360,7 +360,7 @@
                 </div>
                 <div class="p-2.5 bg-soft-blueLight/15 rounded-xl text-xs text-soft-blue border border-soft-blueLight/30 leading-relaxed">
                     <i class="fas fa-search-plus mr-1"></i><strong>Dra ⌟-hörnet</strong> för att ändra storlek.<br/>
-                    <i class="fas fa-sync-alt mr-1 mt-1"></i>Dra 3D-objekt för att rotera dem.
+                    <i class="fas fa-sync-alt mr-1 mt-1"></i>3D-objekt roterar automatiskt.
                 </div>
                 <button onclick="clearGeoWorkspace()" class="bg-soft-text hover:bg-soft-muted text-white p-2 rounded mt-auto text-sm font-semibold">Rensa allt</button>
             </div>
@@ -1374,7 +1374,7 @@
     // --- 2D shapes ---
     function add2DShape(type) {
         const ws = document.getElementById('workspace-geometry');
-        const size = 120;
+        const size = 160;
         const x = ws.clientWidth / 2 - size / 2 + (Math.random() * 60 - 30);
         const y = ws.clientHeight - size - 20 + (Math.random() * 30 - 15);
         const wrapper = document.createElement('div');
@@ -1439,47 +1439,11 @@
         card.style.cssText = `width:${cardSize}px;height:${cardSize}px;left:0;top:0;position:absolute;transform-origin:top left;`;
         card.dataset.x = x; card.dataset.y = y; card.dataset.scale = 1;
 
-        // Label
-        const label = document.createElement('div');
-        const names = {cylinder:'Cylinder',cube:'Kub',cuboid:'Rätblock',sphere:'Klot',pyramid:'Pyramid',cone:'Kon'};
-        label.style.cssText = 'position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:11px;font-weight:800;color:#4a4b50;font-family:Nunito,sans-serif;z-index:2;pointer-events:none;';
-        label.textContent = names[type] || type;
-        card.appendChild(label);
-
         ws.appendChild(card);
 
         // Three.js mini scene
         const state = initMini3D(card, type, cardSize);
         geo3DCards.push(state);
-
-        // Drag bar at top of card — grab here to move the card
-        const dragBar = document.createElement('div');
-        dragBar.style.cssText = 'position:absolute;top:0;left:0;right:0;height:22px;background:rgba(74,75,80,0.08);cursor:grab;z-index:5;border-radius:10px 10px 0 0;display:flex;align-items:center;justify-content:center;';
-        dragBar.innerHTML = '<div style="width:28px;height:3px;border-radius:2px;background:rgba(74,75,80,0.25);"></div>';
-        card.appendChild(dragBar);
-
-        let dragging = false, ox, oy, sx, sy, pid;
-        dragBar.addEventListener('pointerdown', (e) => {
-            if (e.button !== 0) return;
-            e.preventDefault(); e.stopPropagation();
-            dragging = true; pid = e.pointerId;
-            dragBar.style.cursor = 'grabbing';
-            ox = parseFloat(card.dataset.x)||0; oy = parseFloat(card.dataset.y)||0;
-            sx = e.clientX; sy = e.clientY;
-            card.style.zIndex = ++zIndexCounter;
-            dragBar.setPointerCapture(e.pointerId);
-        });
-        dragBar.addEventListener('pointermove', (e) => {
-            if (!dragging || e.pointerId !== pid) return;
-            card.dataset.x = ox + (e.clientX - sx);
-            card.dataset.y = oy + (e.clientY - sy);
-            applyCardTransform(card);
-        });
-        dragBar.addEventListener('pointerup', (e) => {
-            if (e.pointerId !== pid) return;
-            dragging = false; dragBar.style.cursor = 'grab';
-            dragBar.releasePointerCapture(e.pointerId);
-        });
 
         // Resize handle
         const rh = document.createElement('div');
@@ -1495,7 +1459,7 @@
                 if (ev.pointerId !== rPid) return;
                 const ns = Math.max(0.4, Math.min(4, rScale + (ev.clientX - rStart) / cardSize));
                 card.dataset.scale = ns;
-                applyCardTransform(card);
+                window.updateTransform(card);
             }
             function onUp(ev) {
                 if (ev.pointerId !== rPid) return;
@@ -1506,6 +1470,8 @@
             document.addEventListener('pointerup', onUp);
         });
         card.appendChild(rh);
+
+        makeDraggable(card, 'workspace-geometry');
     }
 
     function applyCardTransform(card) {
@@ -1517,12 +1483,13 @@
     }
 
     function initMini3D(card, type, size) {
-        const scene = new THREE.Scene(); scene.background = new THREE.Color(0xf4f3ef);
+        const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000); camera.position.z = 4;
-        const renderer = new THREE.WebGLRenderer({antialias:true});
+        const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
         renderer.setSize(size, size); renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setClearColor(0x000000, 0);
         const canvas = renderer.domElement;
-        canvas.style.cssText = 'display:block;width:100%;height:calc(100% - 22px);margin-top:22px;cursor:grab;';
+        canvas.style.cssText = 'display:block;width:100%;height:100%;pointer-events:none;';
         card.insertBefore(canvas, card.firstChild);
 
         scene.add(new THREE.AmbientLight(0xffffff, 0.7));
@@ -1546,16 +1513,11 @@
         mesh.rotation.x = 0.4; mesh.rotation.y = 0.5;
         scene.add(mesh);
 
-        let isDrag = false, prevX = 0, prevY = 0;
-        canvas.addEventListener('pointerdown', (e) => { isDrag=true; prevX=e.clientX; prevY=e.clientY; canvas.setPointerCapture(e.pointerId); e.stopPropagation(); });
-        canvas.addEventListener('pointermove', (e) => { if(!isDrag) return; mesh.rotation.y+=(e.clientX-prevX)*0.012; mesh.rotation.x+=(e.clientY-prevY)*0.012; prevX=e.clientX; prevY=e.clientY; });
-        canvas.addEventListener('pointerup',   (e) => { isDrag=false; canvas.releasePointerCapture(e.pointerId); });
-
         let animId;
         const state = {card, scene, camera, renderer, mesh, canvas};
         function animate() {
             animId = requestAnimationFrame(animate);
-            if (!isDrag) { mesh.rotation.y += 0.006; mesh.rotation.x += 0.002; }
+            mesh.rotation.y += 0.006; mesh.rotation.x += 0.002;
             renderer.render(scene, camera);
         }
         state.animId = animId;
