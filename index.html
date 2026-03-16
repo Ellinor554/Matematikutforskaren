@@ -79,6 +79,10 @@
         .line-dot:hover { r: 8; }
         .drag-handle-bar { position: absolute; top: 0; left: 0; right: 0; height: 100%; cursor: ns-resize; }
 
+        /* ── Positionssystem – column headers & dividers ── */
+        .pos-col-header { position:absolute; top:0; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; height:40px; pointer-events:none; z-index:5; box-sizing:border-box; border-bottom-width:2px; border-bottom-style:solid; }
+        .pos-col-divider { position:absolute; top:0; bottom:0; width:1px; pointer-events:none; z-index:4; }
+
         /* ── Koordinatsystem – smartboard / presentationsläge ── */
         #koord-sidebar { transition: transform 0.28s cubic-bezier(0.4,0,0.2,1), width 0.28s; }
         #koord-float-panel {
@@ -689,6 +693,7 @@
             <div id="positionssystem-sidebar" class="w-64 bg-soft-surface shadow-md z-10 p-5 flex flex-col gap-4 overflow-y-auto border-r border-soft-border shrink-0">
                 <h3 class="font-bold text-soft-text text-sm uppercase tracking-wider text-soft-muted">Lägg till material</h3>
                 <div class="flex flex-col gap-2">
+                    <span class="font-semibold text-xs uppercase tracking-wider text-soft-muted">Block</span>
                     <button onclick="addPosPiece('tusental')" class="flex items-center gap-3 px-3 py-2 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 transition-colors">
                         <svg viewBox="0 0 24 24" width="28" height="28" style="flex-shrink:0"><polygon points="12,1 22,6 12,11 2,6" fill="#64B5F6" stroke="#1565C0" stroke-width="1"/><polygon points="2,6 2,18 12,23 12,11" fill="#1E88E5" stroke="#1565C0" stroke-width="1"/><polygon points="12,11 22,6 22,18 12,23" fill="#1565C0" stroke="#1565C0" stroke-width="1"/></svg>
                         <div class="text-left">
@@ -714,6 +719,35 @@
                         <svg viewBox="0 0 16 18" width="18" height="20" style="flex-shrink:0"><polygon points="8,1 15,5 8,9 1,5" fill="#EF9A9A" stroke="#C62828" stroke-width="1"/><polygon points="1,5 1,13 8,17 8,9" fill="#C62828" stroke="#C62828" stroke-width="1"/><polygon points="8,9 15,5 15,13 8,17" fill="#E53935" stroke="#C62828" stroke-width="1"/></svg>
                         <div class="text-left">
                             <div class="font-bold text-soft-text text-sm">Ental</div>
+                            <div class="text-soft-muted text-xs">= 1</div>
+                        </div>
+                    </button>
+                    <span class="font-semibold text-xs uppercase tracking-wider text-soft-muted mt-1">Pengar (kr)</span>
+                    <button onclick="addPosPiece('tusental','pengar')" class="flex items-center gap-3 px-3 py-2 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 transition-colors">
+                        <svg viewBox="0 0 52 30" width="52" height="30" style="flex-shrink:0"><rect x="1" y="1" width="50" height="28" rx="3" fill="#1E88E5" stroke="#1565C0" stroke-width="1"/><rect x="4" y="4" width="44" height="22" rx="2" fill="none" stroke="#64B5F6" stroke-width="0.8"/><text x="26" y="13" text-anchor="middle" font-size="8" font-weight="bold" fill="white" font-family="Nunito,sans-serif">1000</text><text x="26" y="22" text-anchor="middle" font-size="5" fill="#90CAF9" font-family="Nunito,sans-serif">kronor</text></svg>
+                        <div class="text-left">
+                            <div class="font-bold text-soft-text text-sm">1 000 kr</div>
+                            <div class="text-soft-muted text-xs">= 1 000</div>
+                        </div>
+                    </button>
+                    <button onclick="addPosPiece('hundratal','pengar')" class="flex items-center gap-3 px-3 py-2 rounded-xl border border-green-200 bg-green-50 hover:bg-green-100 transition-colors">
+                        <svg viewBox="0 0 52 30" width="52" height="30" style="flex-shrink:0"><rect x="1" y="1" width="50" height="28" rx="3" fill="#388E3C" stroke="#2E7D32" stroke-width="1"/><rect x="4" y="4" width="44" height="22" rx="2" fill="none" stroke="#81C784" stroke-width="0.8"/><text x="26" y="13" text-anchor="middle" font-size="9" font-weight="bold" fill="white" font-family="Nunito,sans-serif">100</text><text x="26" y="22" text-anchor="middle" font-size="5" fill="#A5D6A7" font-family="Nunito,sans-serif">kronor</text></svg>
+                        <div class="text-left">
+                            <div class="font-bold text-soft-text text-sm">100 kr</div>
+                            <div class="text-soft-muted text-xs">= 100</div>
+                        </div>
+                    </button>
+                    <button onclick="addPosPiece('tiotal','pengar')" class="flex items-center gap-3 px-3 py-2 rounded-xl border border-yellow-200 bg-yellow-50 hover:bg-yellow-100 transition-colors">
+                        <svg viewBox="0 0 30 30" width="30" height="30" style="flex-shrink:0"><circle cx="15" cy="15" r="13" fill="#F9A825" stroke="#92700A" stroke-width="1"/><circle cx="15" cy="15" r="10" fill="none" stroke="#FFD54F" stroke-width="0.8"/><text x="15" y="13" text-anchor="middle" font-size="7" font-weight="bold" fill="#3a2000" font-family="Nunito,sans-serif">10</text><text x="15" y="22" text-anchor="middle" font-size="5" fill="#3a2000" font-family="Nunito,sans-serif">kr</text></svg>
+                        <div class="text-left">
+                            <div class="font-bold text-soft-text text-sm">10 kr</div>
+                            <div class="text-soft-muted text-xs">= 10</div>
+                        </div>
+                    </button>
+                    <button onclick="addPosPiece('ental','pengar')" class="flex items-center gap-3 px-3 py-2 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 transition-colors">
+                        <svg viewBox="0 0 26 26" width="26" height="26" style="flex-shrink:0"><circle cx="13" cy="13" r="11" fill="#b87333" stroke="#7a4010" stroke-width="1"/><circle cx="13" cy="13" r="8" fill="none" stroke="#d4956a" stroke-width="0.8"/><text x="13" y="11" text-anchor="middle" font-size="7" font-weight="bold" fill="white" font-family="Nunito,sans-serif">1</text><text x="13" y="20" text-anchor="middle" font-size="5" fill="#FFD9B8" font-family="Nunito,sans-serif">kr</text></svg>
+                        <div class="text-left">
+                            <div class="font-bold text-soft-text text-sm">1 kr</div>
                             <div class="text-soft-muted text-xs">= 1</div>
                         </div>
                     </button>
@@ -2486,10 +2520,103 @@
 
     // ===================== POSITIONSSYSTEM =====================
     function initPosSystem() {
+        const ws = document.getElementById('workspace-positionssystem');
+        if (!ws) return;
+        // Add column headers and dividers (remove any existing ones first)
+        ws.querySelectorAll('.pos-col-header, .pos-col-divider').forEach(el => el.remove());
+        const cols = [
+            { label: 'Tusental', color: '#1565C0', bg: 'rgba(30,136,229,0.06)', border: 'rgba(21,101,192,0.25)' },
+            { label: 'Hundratal', color: '#2E7D32', bg: 'rgba(56,142,60,0.06)', border: 'rgba(46,125,50,0.25)' },
+            { label: 'Tiotal', color: '#92700A', bg: 'rgba(249,168,37,0.06)', border: 'rgba(146,112,10,0.25)' },
+            { label: 'Ental', color: '#C62828', bg: 'rgba(229,57,53,0.06)', border: 'rgba(198,40,40,0.25)' }
+        ];
+        cols.forEach((col, i) => {
+            const hdr = document.createElement('div');
+            hdr.className = 'pos-col-header';
+            hdr.style.cssText = `left:${i*25}%; width:25%; color:${col.color}; border-color:${col.border}; background:${col.bg};`;
+            hdr.textContent = col.label;
+            ws.appendChild(hdr);
+            if (i > 0) {
+                const dv = document.createElement('div');
+                dv.className = 'pos-col-divider';
+                dv.style.cssText = `left:${i*25}%; background:${col.border};`;
+                ws.appendChild(dv);
+            }
+        });
         updatePosCounter();
     }
 
-    function createPosPieceSVG(type) {
+    // Returns {x, y} for the next available slot in the column for the given type
+    function getPosColumnPlacement(type) {
+        const ws = document.getElementById('workspace-positionssystem');
+        if (!ws) return { x: 50, y: 50 };
+        const rect = ws.getBoundingClientRect();
+        const wsWidth = rect.width > 0 ? rect.width : 800;
+        const colMap = { tusental: 0, hundratal: 1, tiotal: 2, ental: 3 };
+        const col = colMap[type] !== undefined ? colMap[type] : 3;
+        const colW = wsWidth / 4;
+        // Default block sizes (used as grid unit for consistent spacing)
+        const pieceSizes = {
+            tusental: { w: 121, h: 122 },
+            hundratal: { w: 121, h: 68 },
+            tiotal: { w: 116, h: 70 },
+            ental: { w: 36, h: 40 }
+        };
+        const sz = pieceSizes[type] || { w: 80, h: 60 };
+        const gap = 8;
+        const pad = 10;
+        const headerH = 44; // height of the column header bar
+        const count = ws.querySelectorAll('[data-pos-type="' + type + '"]').length;
+        const maxPerRow = Math.max(1, Math.floor((colW - pad * 2 + gap) / (sz.w + gap)));
+        const row = Math.floor(count / maxPerRow);
+        const colInRow = count % maxPerRow;
+        const x = col * colW + pad + colInRow * (sz.w + gap);
+        const y = headerH + row * (sz.h + gap);
+        return { x, y };
+    }
+
+    function createPosMoneySVG(type) {
+        if (type === 'tusental') {
+            return `<svg viewBox="0 0 90 52" width="90" height="52" style="display:block">
+                <rect x="1" y="1" width="88" height="50" rx="4" fill="#1E88E5" stroke="#1565C0" stroke-width="1.5"/>
+                <rect x="5" y="5" width="80" height="42" rx="3" fill="none" stroke="#64B5F6" stroke-width="1"/>
+                <circle cx="12" cy="12" r="5" fill="none" stroke="#64B5F6" stroke-width="0.8"/>
+                <circle cx="78" cy="40" r="5" fill="none" stroke="#64B5F6" stroke-width="0.8"/>
+                <text x="45" y="23" text-anchor="middle" dominant-baseline="middle" font-size="16" font-weight="bold" fill="white" font-family="Nunito,sans-serif">1000</text>
+                <text x="45" y="39" text-anchor="middle" font-size="9" fill="#90CAF9" font-family="Nunito,sans-serif">kronor</text>
+            </svg>`;
+        }
+        if (type === 'hundratal') {
+            return `<svg viewBox="0 0 90 52" width="90" height="52" style="display:block">
+                <rect x="1" y="1" width="88" height="50" rx="4" fill="#388E3C" stroke="#2E7D32" stroke-width="1.5"/>
+                <rect x="5" y="5" width="80" height="42" rx="3" fill="none" stroke="#81C784" stroke-width="1"/>
+                <circle cx="12" cy="12" r="5" fill="none" stroke="#81C784" stroke-width="0.8"/>
+                <circle cx="78" cy="40" r="5" fill="none" stroke="#81C784" stroke-width="0.8"/>
+                <text x="45" y="23" text-anchor="middle" dominant-baseline="middle" font-size="16" font-weight="bold" fill="white" font-family="Nunito,sans-serif">100</text>
+                <text x="45" y="39" text-anchor="middle" font-size="9" fill="#A5D6A7" font-family="Nunito,sans-serif">kronor</text>
+            </svg>`;
+        }
+        if (type === 'tiotal') {
+            return `<svg viewBox="0 0 60 60" width="60" height="60" style="display:block">
+                <circle cx="30" cy="30" r="28" fill="#F9A825" stroke="#92700A" stroke-width="1.5"/>
+                <circle cx="30" cy="30" r="23" fill="none" stroke="#FFD54F" stroke-width="1"/>
+                <text x="30" y="27" text-anchor="middle" dominant-baseline="middle" font-size="16" font-weight="bold" fill="#3a2000" font-family="Nunito,sans-serif">10</text>
+                <text x="30" y="43" text-anchor="middle" font-size="10" fill="#3a2000" font-family="Nunito,sans-serif">kr</text>
+            </svg>`;
+        }
+        if (type === 'ental') {
+            return `<svg viewBox="0 0 46 46" width="46" height="46" style="display:block">
+                <circle cx="23" cy="23" r="21" fill="#b87333" stroke="#7a4010" stroke-width="1.5"/>
+                <circle cx="23" cy="23" r="16" fill="none" stroke="#d4956a" stroke-width="1"/>
+                <text x="23" y="21" text-anchor="middle" dominant-baseline="middle" font-size="14" font-weight="bold" fill="white" font-family="Nunito,sans-serif">1</text>
+                <text x="23" y="35" text-anchor="middle" font-size="9" fill="#FFD9B8" font-family="Nunito,sans-serif">kr</text>
+            </svg>`;
+        }
+        return '';
+    }
+
+    function createPosPieceSVG(type, mode) {
+        if (mode === 'pengar') return createPosMoneySVG(type);
         let lines = '';
         if (type === 'ental') {
             return `<svg viewBox="0 0 30 33" width="36" height="40" style="display:block">
@@ -2559,18 +2686,20 @@
         }, { passive: false });
     }
 
-    function addPosPiece(type) {
+    function addPosPiece(type, mode) {
+        mode = mode || 'block';
         const ws = document.getElementById('workspace-positionssystem');
         if (!ws) return;
         const div = document.createElement('div');
         div.className = 'draggable-item';
         div.dataset.posType = type;
-        const rect = ws.getBoundingClientRect();
-        div.dataset.x = 40 + Math.random() * Math.max(60, rect.width * 0.4);
-        div.dataset.y = 40 + Math.random() * Math.max(60, rect.height * 0.4);
+        div.dataset.posMode = mode;
+        const pos = getPosColumnPlacement(type);
+        div.dataset.x = pos.x;
+        div.dataset.y = pos.y;
         div.dataset.rot = 0;
         div.dataset.scale = 1;
-        div.innerHTML = createPosPieceSVG(type);
+        div.innerHTML = createPosPieceSVG(type, mode);
         _attachPosPieceEvents(div);
         ws.appendChild(div);
         updateTransform(div);
@@ -2596,39 +2725,35 @@
                 else if (el.dataset.posType === 'hundratal') hundreds.push(el);
             });
             if (ones.length >= 10) {
-                const cx = ones.slice(0, 10).reduce((s, el) => s + parseFloat(el.dataset.x || 0), 0) / 10;
-                const cy = ones.slice(0, 10).reduce((s, el) => s + parseFloat(el.dataset.y || 0), 0) / 10;
                 ones.slice(0, 10).forEach(el => el.remove());
-                _addPosPieceAt('tiotal', cx, cy);
+                _addPosPieceAt('tiotal');
                 changed = true;
             } else if (tens.length >= 10) {
-                const cx = tens.slice(0, 10).reduce((s, el) => s + parseFloat(el.dataset.x || 0), 0) / 10;
-                const cy = tens.slice(0, 10).reduce((s, el) => s + parseFloat(el.dataset.y || 0), 0) / 10;
                 tens.slice(0, 10).forEach(el => el.remove());
-                _addPosPieceAt('hundratal', cx, cy);
+                _addPosPieceAt('hundratal');
                 changed = true;
             } else if (hundreds.length >= 10) {
-                const cx = hundreds.slice(0, 10).reduce((s, el) => s + parseFloat(el.dataset.x || 0), 0) / 10;
-                const cy = hundreds.slice(0, 10).reduce((s, el) => s + parseFloat(el.dataset.y || 0), 0) / 10;
                 hundreds.slice(0, 10).forEach(el => el.remove());
-                _addPosPieceAt('tusental', cx, cy);
+                _addPosPieceAt('tusental');
                 changed = true;
             }
         }
         updatePosCounter();
     }
 
-    function _addPosPieceAt(type, x, y) {
+    function _addPosPieceAt(type) {
         const ws = document.getElementById('workspace-positionssystem');
         if (!ws) return;
         const div = document.createElement('div');
         div.className = 'draggable-item';
         div.dataset.posType = type;
-        div.dataset.x = x;
-        div.dataset.y = y;
+        div.dataset.posMode = 'block';
+        const pos = getPosColumnPlacement(type);
+        div.dataset.x = pos.x;
+        div.dataset.y = pos.y;
         div.dataset.rot = 0;
         div.dataset.scale = 1;
-        div.innerHTML = createPosPieceSVG(type);
+        div.innerHTML = createPosPieceSVG(type, 'block');
         _attachPosPieceEvents(div);
         ws.appendChild(div);
         updateTransform(div);
