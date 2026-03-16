@@ -277,10 +277,16 @@
                     <input type="number" id="nl-to" value="10" step="any" class="ml-1 w-20 border border-soft-border rounded-lg px-2 py-1 text-center font-bold text-soft-text focus:outline-none focus:ring-2 focus:ring-soft-blue/40"/>
                 </label>
                 <label class="flex items-center gap-2 font-semibold text-soft-text text-sm cursor-pointer select-none">
-                    <input type="checkbox" id="nl-tenths" class="w-4 h-4 accent-soft-blue"/>Tiondelar (0,1)
+                    <input type="radio" name="nl-step" id="nl-step-tens" value="10" class="w-4 h-4 accent-soft-blue"/>Tiotal (10)
                 </label>
                 <label class="flex items-center gap-2 font-semibold text-soft-text text-sm cursor-pointer select-none">
-                    <input type="checkbox" id="nl-hundredths" class="w-4 h-4 accent-soft-blue"/>Hundradelar (0,01)
+                    <input type="radio" name="nl-step" id="nl-step-ones" value="1" checked class="w-4 h-4 accent-soft-blue"/>Ental (1)
+                </label>
+                <label class="flex items-center gap-2 font-semibold text-soft-text text-sm cursor-pointer select-none">
+                    <input type="radio" name="nl-step" id="nl-step-tenths" value="0.1" class="w-4 h-4 accent-soft-blue"/>Tiondelar (0,1)
+                </label>
+                <label class="flex items-center gap-2 font-semibold text-soft-text text-sm cursor-pointer select-none">
+                    <input type="radio" name="nl-step" id="nl-step-hundredths" value="0.01" class="w-4 h-4 accent-soft-blue"/>Hundradelar (0,01)
                 </label>
                 <button onclick="applyCustomNumberLine()" class="px-5 py-1.5 bg-soft-blue text-white font-bold rounded-full hover:bg-soft-blue/80 transition-colors text-sm">Skapa</button>
             </div>
@@ -1335,19 +1341,19 @@
     function applyCustomNumberLine() {
         const from = parseFloat(document.getElementById('nl-from').value);
         const to   = parseFloat(document.getElementById('nl-to').value);
-        const tenths    = document.getElementById('nl-tenths').checked;
-        const hundredths = document.getElementById('nl-hundredths').checked;
+        const checkedStep = document.querySelector('input[name="nl-step"]:checked');
+        const stepVal = checkedStep ? parseFloat(checkedStep.value) : 1;
         if (isNaN(from) || isNaN(to) || to <= from) {
             alert('Ange giltiga värden: "Från" måste vara mindre än "Till".');
             return;
         }
         let step, decimalPlaces;
-        if (hundredths) {
+        if (stepVal === 0.01) {
             step = 0.01; decimalPlaces = 2;
-        } else if (tenths) {
+        } else if (stepVal === 0.1) {
             step = 0.1;  decimalPlaces = 1;
         } else {
-            step = 1;    decimalPlaces = 0;
+            step = stepVal; decimalPlaces = 0;
         }
         setNumberLine(from, to, step, decimalPlaces);
     }
