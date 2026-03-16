@@ -755,7 +755,7 @@
 
     /**
      * Per-view lifecycle hooks. Add an entry here when creating a new view.
-     * @type {Object.<string, {onEnter?: Function, onResize?: Function}>}
+     * @type {Object.<string, {onEnter?: () => void, onResize?: () => void}>}
      */
     const VIEW_REGISTRY = {
         counting:   { onEnter: () => { if (countingMode === 'friends') initTenFriends(); else buildMathGrid(countingMode === 'multiplication'); } },
@@ -2721,7 +2721,9 @@
     }
 
     window.onload = initApp;
-    window.addEventListener('resize', () => { VIEW_REGISTRY[currentView]?.onResize?.(); });
+    window.addEventListener('resize', () => {
+        if (currentView !== 'home') VIEW_REGISTRY[currentView]?.onResize?.();
+    });
     </script>
 </body>
 </html>
