@@ -2565,7 +2565,7 @@
         const sz = pieceSizes[type] || { w: 80, h: 60 };
         const gap = 8;
         const pad = 10;
-        const headerH = 44; // height of the column header bar
+        const headerH = 44; // 40px header height + 4px gap before first piece
         const count = ws.querySelectorAll('[data-pos-type="' + type + '"]').length;
         const maxPerRow = Math.max(1, Math.floor((colW - pad * 2 + gap) / (sz.w + gap)));
         const row = Math.floor(count / maxPerRow);
