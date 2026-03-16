@@ -1626,7 +1626,7 @@
     // --- 3D cards (independent mini Three.js scenes) ---
     function add3DCard(type) {
         const ws = document.getElementById('workspace-geometry');
-        const cardSize = 200;
+        const cardSize = 240;
         const headerH = 24;
         const x = ws.clientWidth / 2 - cardSize / 2 + (Math.random() * 80 - 40);
         const y = ws.clientHeight - (cardSize + headerH) - 20 + (Math.random() * 30 - 15);
@@ -1712,7 +1712,7 @@
 
     function initMini3D(card, type, size) {
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000); camera.position.z = 3.5;
+        const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000); camera.position.z = 5;
         const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
         renderer.setSize(size, size); renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setClearColor(0x000000, 0);
