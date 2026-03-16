@@ -265,10 +265,27 @@
             <div id="numberlines-topbar" data-view-panel="top" class="flex justify-center gap-4 p-4 bg-soft-bg border-b border-soft-border shrink-0 flex-wrap">
                 <button onclick="setNumberLine(0,10,1)" class="px-4 py-2 bg-soft-blueLight/30 text-soft-blue font-bold rounded-full hover:bg-soft-blueLight/50 whitespace-nowrap">0 till 10</button>
                 <button onclick="setNumberLine(0,100,1)" class="px-4 py-2 bg-soft-blueLight/30 text-soft-blue font-bold rounded-full hover:bg-soft-blueLight/50 whitespace-nowrap">0 till 100</button>
-                <button onclick="setNumberLine(0,3,0.1,true)" class="px-4 py-2 bg-soft-blueLight/30 text-soft-blue font-bold rounded-full hover:bg-soft-blueLight/50 whitespace-nowrap">0 till 3 (Decimaler)</button>
+                <button onclick="setNumberLine(0,3,0.1,1)" class="px-4 py-2 bg-soft-blueLight/30 text-soft-blue font-bold rounded-full hover:bg-soft-blueLight/50 whitespace-nowrap">0 till 3 (Decimaler)</button>
+                <button onclick="toggleCustomNLPanel()" class="px-4 py-2 bg-soft-greenLight/30 text-soft-green font-bold rounded-full hover:bg-soft-greenLight/50 whitespace-nowrap flex items-center gap-2"><i class="fas fa-sliders-h text-sm"></i>Valbar</button>
             </div>
-            <div class="flex-1 relative flex items-center justify-center p-8 overflow-x-auto">
-                <div id="numberline-container" class="relative w-full max-w-5xl flex flex-col items-center" style="min-height:220px;"></div>
+            <!-- Custom number line panel -->
+            <div id="nl-custom-panel" class="hidden flex-wrap justify-center items-center gap-3 px-4 py-3 bg-white border-b border-soft-border shrink-0">
+                <label class="flex items-center gap-1 font-semibold text-soft-text text-sm">Från:
+                    <input type="number" id="nl-from" value="0" step="any" class="ml-1 w-20 border border-soft-border rounded-lg px-2 py-1 text-center font-bold text-soft-text focus:outline-none focus:ring-2 focus:ring-soft-blue/40"/>
+                </label>
+                <label class="flex items-center gap-1 font-semibold text-soft-text text-sm">Till:
+                    <input type="number" id="nl-to" value="10" step="any" class="ml-1 w-20 border border-soft-border rounded-lg px-2 py-1 text-center font-bold text-soft-text focus:outline-none focus:ring-2 focus:ring-soft-blue/40"/>
+                </label>
+                <label class="flex items-center gap-2 font-semibold text-soft-text text-sm cursor-pointer select-none">
+                    <input type="checkbox" id="nl-tenths" class="w-4 h-4 accent-soft-blue"/>Tiondelar (0,1)
+                </label>
+                <label class="flex items-center gap-2 font-semibold text-soft-text text-sm cursor-pointer select-none">
+                    <input type="checkbox" id="nl-hundredths" class="w-4 h-4 accent-soft-blue"/>Hundradelar (0,01)
+                </label>
+                <button onclick="applyCustomNumberLine()" class="px-5 py-1.5 bg-soft-blue text-white font-bold rounded-full hover:bg-soft-blue/80 transition-colors text-sm">Skapa</button>
+            </div>
+            <div class="flex-1 relative flex items-center justify-center px-4 py-4 overflow-x-auto">
+                <div id="numberline-container" class="relative w-full flex flex-col items-center" style="min-height:220px;"></div>
             </div>
         </section>
 
@@ -1307,12 +1324,46 @@
     // ===================== NUMBER LINES =====================
     let nlState = null; // current number line state
 
-    function setNumberLine(min, max, step, showDecimals=false) {
-        nlState = {min, max, step, showDecimals};
+    // Toggle the custom number line panel
+    function toggleCustomNLPanel() {
+        const panel = document.getElementById('nl-custom-panel');
+        panel.classList.toggle('hidden');
+        panel.classList.toggle('flex');
+    }
+
+    // Apply user-configured number line
+    function applyCustomNumberLine() {
+        const from = parseFloat(document.getElementById('nl-from').value);
+        const to   = parseFloat(document.getElementById('nl-to').value);
+        const tenths    = document.getElementById('nl-tenths').checked;
+        const hundredths = document.getElementById('nl-hundredths').checked;
+        if (isNaN(from) || isNaN(to) || to <= from) {
+            alert('Ange giltiga värden: "Från" måste vara mindre än "Till".');
+            return;
+        }
+        let step, decimalPlaces;
+        if (hundredths) {
+            step = 0.01; decimalPlaces = 2;
+        } else if (tenths) {
+            step = 0.1;  decimalPlaces = 1;
+        } else {
+            step = 1;    decimalPlaces = 0;
+        }
+        setNumberLine(from, to, step, decimalPlaces);
+    }
+
+    // setNumberLine(min, max, step, decimalPlaces=0)
+    //   decimalPlaces: 0 = integers, 1 = tenths (0,1), 2 = hundredths (0,01)
+    function setNumberLine(min, max, step, decimalPlaces=0) {
+        // Accept legacy boolean true/false for decimalPlaces
+        if (decimalPlaces === true)  decimalPlaces = 1;
+        if (decimalPlaces === false) decimalPlaces = 0;
+
+        nlState = {min, max, step, decimalPlaces};
         const container = document.getElementById('numberline-container');
         container.innerHTML = '';
 
-        const W = 860, H = 120, lineY = 62, pad = 50;
+        const W = 960, H = 130, lineY = 65, pad = 55;
         const numTicks = Math.round((max - min) / step);
         const pxPerTick = (W - 2*pad) / numTicks;
         const markerSize = 44;
@@ -1323,58 +1374,66 @@
         svg.setAttribute("class", "w-full drop-shadow-sm");
         svg.style.cssText = "overflow:visible;display:block;flex-shrink:0;";
 
-        // Arrow line
+        // Defs first so marker is defined before it is referenced
+        const defs = document.createElementNS("http://www.w3.org/2000/svg","defs");
+        defs.innerHTML = `<marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L0,8 L10,4 Z" fill="#4a4b50"/></marker>`;
+        svg.appendChild(defs);
+
+        // Arrow line — end point well past the last tick so the arrowhead clears it
         const arrow = document.createElementNS("http://www.w3.org/2000/svg","line");
         arrow.setAttribute("x1", pad-10); arrow.setAttribute("y1", lineY);
-        arrow.setAttribute("x2", W-pad+10); arrow.setAttribute("y2", lineY);
+        arrow.setAttribute("x2", W-pad+28); arrow.setAttribute("y2", lineY);
         arrow.setAttribute("stroke","#4a4b50"); arrow.setAttribute("stroke-width","4");
         arrow.setAttribute("marker-end","url(#arrow)"); svg.appendChild(arrow);
 
-        // Arrowhead marker def
-        const defs = document.createElementNS("http://www.w3.org/2000/svg","defs");
-        defs.innerHTML = `<marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 Z" fill="#4a4b50"/></marker>`;
-        svg.appendChild(defs);
+        // Helper: determine whether tick i is a "major" (labelled) tick
+        function isMajorTick(val, i) {
+            if (decimalPlaces === 2) {
+                // hundredths: label at every tenth (0.1 boundary), use tolerance for float precision
+                return Math.abs(val * 10 - Math.round(val * 10)) < 0.001;
+            }
+            if (decimalPlaces === 1) {
+                if (numTicks <= 30)  return true;            // ≤30 ticks: all
+                if (numTicks <= 100) return Math.abs((val * 10) - Math.round(val * 10 / 5) * 5) < 0.001; // every 0.5
+                return Math.abs(val - Math.round(val)) < step / 2; // whole numbers
+            }
+            // integers
+            if (numTicks > 20) return val % 10 === 0;
+            if (numTicks > 10) return val % 5 === 0;
+            return true;
+        }
 
         // Ticks and labels
         for (let i = 0; i <= numTicks; i++) {
             const val = parseFloat((min + i*step).toFixed(10));
             const x = pad + i * pxPerTick;
-            // For dense lines (many ticks), only label at intervals that fit
-            let isMajor;
-            if (showDecimals) {
-                isMajor = true; // label every tick for decimals
-            } else if (numTicks > 20) {
-                isMajor = val % 10 === 0; // 0-100: label every 10
-            } else if (numTicks > 10) {
-                isMajor = val % 5 === 0;  // label every 5
-            } else {
-                isMajor = true;            // 0-10: label every 1
-            }
-            const tickH = isMajor ? 14 : 8;
+            const major = isMajorTick(val, i);
+            const tickH = major ? 16 : 8;
 
             const tick = document.createElementNS("http://www.w3.org/2000/svg","line");
             tick.setAttribute("x1", x); tick.setAttribute("y1", lineY - tickH);
             tick.setAttribute("x2", x); tick.setAttribute("y2", lineY + tickH);
             tick.setAttribute("stroke","#4a4b50");
-            tick.setAttribute("stroke-width", isMajor ? "2.5" : "1.5");
+            tick.setAttribute("stroke-width", major ? "2.5" : "1.2");
             svg.appendChild(tick);
 
-            if (isMajor) {
+            if (major) {
+                const fontSize = decimalPlaces === 2 ? 11 : decimalPlaces === 1 ? 13 : 15;
                 const txt = document.createElementNS("http://www.w3.org/2000/svg","text");
-                txt.setAttribute("x", x); txt.setAttribute("y", lineY + 34);
+                txt.setAttribute("x", x); txt.setAttribute("y", lineY + 36);
                 txt.setAttribute("text-anchor","middle");
                 txt.setAttribute("font-family","Nunito,sans-serif");
                 txt.setAttribute("font-weight","bold");
-                txt.setAttribute("font-size", showDecimals ? "13" : "15");
+                txt.setAttribute("font-size", fontSize);
                 txt.setAttribute("fill","#4a4b50");
-                txt.textContent = showDecimals ? val.toFixed(1).replace('.',',') : val;
+                txt.textContent = decimalPlaces > 0 ? val.toFixed(decimalPlaces).replace('.',',') : val;
                 svg.appendChild(txt);
             }
         }
 
         container.appendChild(svg);
 
-        // Display box — shows current value, previous value, and delta
+        // Display box — shows current value and delta
         const display = document.createElement('div');
         display.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:12px;';
         display.innerHTML = `
@@ -1385,7 +1444,7 @@
         `;
         container.appendChild(display);
 
-        // Arrow marker (points down to the number line)
+        // Draggable arrow marker (points down to the number line)
         const marker = document.createElement('div');
         marker.style.cssText = `position:absolute;width:${markerSize}px;top:0;left:0;cursor:grab;user-select:none;touch-action:none;display:flex;flex-direction:column;align-items:center;`;
         marker.innerHTML = `
@@ -1394,14 +1453,18 @@
         `;
         container.appendChild(marker);
 
+        function fmtVal(v) {
+            return decimalPlaces > 0 ? v.toFixed(decimalPlaces).replace('.', ',') : v;
+        }
+
         // Position helpers — convert between value and pixel x within container
-        function valToContainerX(val) {
+        function valToContainerX(v) {
             const svgEl = container.querySelector('svg');
             const svgRect = svgEl.getBoundingClientRect();
             const conRect = container.getBoundingClientRect();
             const svgOffsetX = svgRect.left - conRect.left;
             const ratio = svgRect.width / W;
-            return svgOffsetX + (pad + ((val - min)/step) * pxPerTick) * ratio - markerSize/2;
+            return svgOffsetX + (pad + ((v - min)/step) * pxPerTick) * ratio - markerSize/2;
         }
 
         function containerXToVal(px) {
@@ -1423,25 +1486,22 @@
             const snappedVal = snap ? containerXToVal(valToContainerX(val) + markerSize/2 - markerSize/2) : val;
             const dispX = valToContainerX(snappedVal);
             marker.style.left = dispX + 'px';
-            // Vertically centre on the line: SVG is display:block, lineY/H ratio
             const svgEl = container.querySelector('svg');
             const svgRect = svgEl.getBoundingClientRect();
             const topOffset = svgRect.top - container.getBoundingClientRect().top;
-            // Arrow: label (~26px) + triangle (12px) = ~38px total, tip touches lineY
             const arrowH = 38;
             marker.style.top = (topOffset + (lineY / H) * svgRect.height - arrowH) + 'px';
 
             const dispEl = document.getElementById('nl-display');
             const arrowLabel = document.getElementById('nl-arrow-label');
             const deltaEl = document.getElementById('nl-delta');
-            const valStr = showDecimals ? snappedVal.toFixed(1).replace('.',',') : snappedVal;
+            const valStr = fmtVal(snappedVal);
             if (dispEl) dispEl.textContent = valStr;
             if (arrowLabel) arrowLabel.textContent = valStr;
             if (deltaEl && prevVal !== null && snappedVal !== prevVal) {
                 const diff = parseFloat((snappedVal - prevVal).toFixed(10));
                 const sign = diff > 0 ? '+' : '';
-                const diffStr = showDecimals ? diff.toFixed(1).replace('.',',') : diff;
-                deltaEl.textContent = `${prevVal} ${diff>0?'→':'←'} ${snappedVal}  (${sign}${diffStr})`;
+                deltaEl.textContent = `${fmtVal(prevVal)} ${diff>0?'→':'←'} ${fmtVal(snappedVal)}  (${sign}${fmtVal(diff)})`;
                 deltaEl.style.color = diff > 0 ? '#4f7c75' : '#a85c72';
             } else if (deltaEl && prevVal === null) {
                 deltaEl.textContent = '';
@@ -1449,7 +1509,7 @@
             currentVal = snappedVal;
         }
 
-        // Drag the frog
+        // Drag interaction
         let dragging = false, dragStartX, markerStartLeft;
         marker.addEventListener('pointerdown', (e) => {
             dragging = true;
@@ -1463,15 +1523,12 @@
         marker.addEventListener('pointermove', (e) => {
             if (!dragging) return;
             const newLeft = markerStartLeft + (e.clientX - dragStartX);
-            // Move freely while dragging, snap on release
             const rawVal = containerXToVal(newLeft);
             marker.style.left = valToContainerX(rawVal) + 'px';
-            // Update display without delta while dragging
             const dispEl = document.getElementById('nl-display');
             const arrowLbl = document.getElementById('nl-arrow-label');
-            const liveStr = showDecimals ? rawVal.toFixed(1).replace('.',',') : rawVal;
-            if (dispEl) dispEl.textContent = liveStr;
-            if (arrowLbl) arrowLbl.textContent = liveStr;
+            if (dispEl) dispEl.textContent = fmtVal(rawVal);
+            if (arrowLbl) arrowLbl.textContent = fmtVal(rawVal);
             currentVal = rawVal;
         });
         marker.addEventListener('pointerup', (e) => {
