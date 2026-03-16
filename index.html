@@ -203,6 +203,14 @@
             transform: translateX(-110%);
         }
         .positionssystem-presenting.positionssystem-sidebar-visible #positionssystem-sidebar { transform: translateX(0); }
+        /* Push workspace right so the fixed sidebar doesn't cover content */
+        .positionssystem-presenting #workspace-positionssystem {
+            transition: margin-left 0.28s cubic-bezier(0.4,0,0.2,1);
+            margin-left: 0;
+        }
+        .positionssystem-presenting.positionssystem-sidebar-visible #workspace-positionssystem {
+            margin-left: 16rem; /* matches w-64 sidebar width */
+        }
     </style>
 </head>
 <body class="text-soft-text flex flex-col h-screen">
@@ -2725,35 +2733,39 @@
                 else if (el.dataset.posType === 'hundratal') hundreds.push(el);
             });
             if (ones.length >= 10) {
+                const mode = ones.some(el => el.dataset.posMode === 'pengar') ? 'pengar' : 'block';
                 ones.slice(0, 10).forEach(el => el.remove());
-                _addPosPieceAt('tiotal');
+                _addPosPieceAt('tiotal', mode);
                 changed = true;
             } else if (tens.length >= 10) {
+                const mode = tens.some(el => el.dataset.posMode === 'pengar') ? 'pengar' : 'block';
                 tens.slice(0, 10).forEach(el => el.remove());
-                _addPosPieceAt('hundratal');
+                _addPosPieceAt('hundratal', mode);
                 changed = true;
             } else if (hundreds.length >= 10) {
+                const mode = hundreds.some(el => el.dataset.posMode === 'pengar') ? 'pengar' : 'block';
                 hundreds.slice(0, 10).forEach(el => el.remove());
-                _addPosPieceAt('tusental');
+                _addPosPieceAt('tusental', mode);
                 changed = true;
             }
         }
         updatePosCounter();
     }
 
-    function _addPosPieceAt(type) {
+    function _addPosPieceAt(type, mode) {
+        mode = mode || 'block';
         const ws = document.getElementById('workspace-positionssystem');
         if (!ws) return;
         const div = document.createElement('div');
         div.className = 'draggable-item';
         div.dataset.posType = type;
-        div.dataset.posMode = 'block';
+        div.dataset.posMode = mode;
         const pos = getPosColumnPlacement(type);
         div.dataset.x = pos.x;
         div.dataset.y = pos.y;
         div.dataset.rot = 0;
         div.dataset.scale = 1;
-        div.innerHTML = createPosPieceSVG(type, 'block');
+        div.innerHTML = createPosPieceSVG(type, mode);
         _attachPosPieceEvents(div);
         ws.appendChild(div);
         updateTransform(div);
