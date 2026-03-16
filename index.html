@@ -343,9 +343,13 @@
                     <button onclick="rotateSelectedPiece(15)"  class="flex-1 bg-soft-bg p-2 rounded text-soft-text hover:bg-[#eae8e3] text-sm border border-soft-border"><i class="fas fa-redo"></i></button>
                     <button onclick="deleteSelectedPiece()" class="flex-1 bg-soft-pinkLight/20 text-soft-pink p-2 rounded hover:bg-soft-pinkLight/40 text-sm border border-soft-pinkLight/30"><i class="fas fa-trash"></i></button>
                 </div>
+                <button id="btn-3d-spin" onclick="toggleGeo3DSpin()" class="bg-soft-bg p-2 rounded-lg text-soft-text hover:bg-[#eae8e3] text-sm border border-soft-border flex items-center gap-2 w-full justify-center">
+                    <i class="fas fa-sync-alt"></i><span id="lbl-3d-spin">Rotation: PÅ</span>
+                </button>
                 <div class="p-2.5 bg-soft-blueLight/15 rounded-xl text-xs text-soft-blue border border-soft-blueLight/30 leading-relaxed">
                     <i class="fas fa-search-plus mr-1"></i><strong>Dra ⌟-hörnet</strong> för att ändra storlek.<br/>
-                    <i class="fas fa-sync-alt mr-1 mt-1"></i>3D-objekt roterar automatiskt.
+                    <i class="fas fa-hand-paper mr-1 mt-1"></i>Dra på 3D-objektet för att vrida det.<br/>
+                    <i class="fas fa-arrows-alt mr-1 mt-1"></i>Dra i namnlistan för att flytta.
                 </div>
                 <button onclick="clearGeoWorkspace()" class="bg-soft-text hover:bg-soft-muted text-white p-2 rounded mt-auto text-sm font-semibold">Rensa allt</button>
             </div>
@@ -1556,6 +1560,12 @@
     // ===================== GEOMETRY =====================
     // Track all independent 3D scenes (one per card)
     let geo3DCards = []; // [{el, scene, camera, renderer, mesh, animId, isDragging, prevX, prevY}]
+    let geo3DAutoRotate = true;
+    function toggleGeo3DSpin() {
+        geo3DAutoRotate = !geo3DAutoRotate;
+        const lbl = document.getElementById('lbl-3d-spin');
+        if (lbl) lbl.textContent = `Rotation: ${geo3DAutoRotate ? 'PÅ' : 'AV'}`;
+    }
 
     // --- 2D shapes ---
     function add2DShape(type) {
@@ -1616,14 +1626,22 @@
     // --- 3D cards (independent mini Three.js scenes) ---
     function add3DCard(type) {
         const ws = document.getElementById('workspace-geometry');
-        const cardSize = 260;
+        const cardSize = 160;
+        const headerH = 18;
         const x = ws.clientWidth / 2 - cardSize / 2 + (Math.random() * 80 - 40);
-        const y = ws.clientHeight - cardSize - 20 + (Math.random() * 30 - 15);
+        const y = ws.clientHeight - (cardSize + headerH) - 20 + (Math.random() * 30 - 15);
 
         const card = document.createElement('div');
         card.className = 'geo-3d-card';
-        card.style.cssText = `width:${cardSize}px;height:${cardSize}px;left:0;top:0;position:absolute;transform-origin:top left;`;
+        card.style.cssText = `width:${cardSize}px;height:${cardSize + headerH}px;left:0;top:0;position:absolute;transform-origin:top left;`;
         card.dataset.x = x; card.dataset.y = y; card.dataset.scale = 1;
+
+        // Header strip – used to drag/move the card
+        const typeLabels = {cylinder:'Cylinder', cube:'Kub', cuboid:'Rätblock', sphere:'Klot', pyramid:'Pyramid', cone:'Kon'};
+        const header = document.createElement('div');
+        header.style.cssText = `width:100%;height:${headerH}px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#6a6b70;user-select:none;cursor:move;background:rgba(100,110,130,0.12);border-radius:10px 10px 0 0;`;
+        header.textContent = `⠿ ${typeLabels[type] || type}`;
+        card.appendChild(header);
 
         ws.appendChild(card);
 
@@ -1631,15 +1649,38 @@
         const state = initMini3D(card, type, cardSize);
         geo3DCards.push(state);
 
+        // Rotate overlay – covers canvas area, allows drag-to-rotate the 3D mesh
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `position:absolute;top:${headerH}px;left:0;width:100%;height:${cardSize}px;z-index:5;cursor:grab;`;
+        let rot3D = false, prevX3D = 0, prevY3D = 0;
+        overlay.addEventListener('pointerdown', (e) => {
+            if (e.button !== 0) return;
+            e.preventDefault();
+            e.stopPropagation();
+            overlay.setPointerCapture(e.pointerId);
+            rot3D = true;
+            prevX3D = e.clientX; prevY3D = e.clientY;
+            overlay.style.cursor = 'grabbing';
+        });
+        overlay.addEventListener('pointermove', (e) => {
+            if (!rot3D) return;
+            const dx = e.clientX - prevX3D, dy = e.clientY - prevY3D;
+            state.mesh.rotation.y += dx * 0.01;
+            state.mesh.rotation.x += dy * 0.01;
+            prevX3D = e.clientX; prevY3D = e.clientY;
+        });
+        overlay.addEventListener('pointerup', () => { rot3D = false; overlay.style.cursor = 'grab'; });
+        card.appendChild(overlay);
+
         // Resize handle
         const rh = document.createElement('div');
         rh.className = 'geo-resize-handle';
         rh.textContent = '⌟';
-        let rs = false, rStart, rScale, rPid;
+        let rStart, rScale, rPid;
         rh.addEventListener('pointerdown', (e) => {
             if (e.button !== 0) return;
             e.preventDefault(); e.stopPropagation();
-            rs = true; rPid = e.pointerId;
+            rPid = e.pointerId;
             rStart = e.clientX; rScale = parseFloat(card.dataset.scale)||1;
             function onMove(ev) {
                 if (ev.pointerId !== rPid) return;
@@ -1670,12 +1711,12 @@
 
     function initMini3D(card, type, size) {
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000); camera.position.z = 4;
+        const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000); camera.position.z = 3.5;
         const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
         renderer.setSize(size, size); renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setClearColor(0x000000, 0);
         const canvas = renderer.domElement;
-        canvas.style.cssText = 'display:block;width:100%;height:100%;pointer-events:none;';
+        canvas.style.cssText = `display:block;width:${size}px;height:${size}px;pointer-events:none;`;
         card.insertBefore(canvas, card.firstChild);
 
         scene.add(new THREE.AmbientLight(0xffffff, 0.7));
@@ -1691,22 +1732,24 @@
             cone:     [new THREE.ConeGeometry(1,2.5,32), 0x938db3, false]
         };
         const [geo, color, flat] = shapeMap[type] || shapeMap['cube'];
-        const mesh = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({color, flatShading:flat}));
+        // polygonOffset pushes faces slightly back so edge lines render cleanly on top
+        const mat = new THREE.MeshPhongMaterial({color, flatShading:flat, polygonOffset:true, polygonOffsetFactor:1, polygonOffsetUnits:1});
+        const mesh = new THREE.Mesh(geo, mat);
         // Only add edge lines on hard-edged shapes (cube, cuboid, pyramid)
         if (type === 'cube' || type === 'cuboid' || type === 'pyramid') {
-            mesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({color:0x00000044})));
+            mesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({color:0x333333, transparent:true, opacity:0.6})));
         }
         mesh.rotation.x = 0.4; mesh.rotation.y = 0.5;
         scene.add(mesh);
 
-        let animId;
-        const state = {card, scene, camera, renderer, mesh, canvas};
+        const state = {card, scene, camera, renderer, mesh, canvas, animId: null};
         function animate() {
-            animId = requestAnimationFrame(animate);
-            mesh.rotation.y += 0.006; mesh.rotation.x += 0.002;
+            state.animId = requestAnimationFrame(animate);
+            if (geo3DAutoRotate) {
+                mesh.rotation.y += 0.006; mesh.rotation.x += 0.002;
+            }
             renderer.render(scene, camera);
         }
-        state.animId = animId;
         animate();
         return state;
     }
