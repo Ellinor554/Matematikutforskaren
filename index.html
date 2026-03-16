@@ -1570,7 +1570,7 @@
     // --- 2D shapes ---
     function add2DShape(type) {
         const ws = document.getElementById('workspace-geometry');
-        const size = 160;
+        const size = 200;
         const x = ws.clientWidth / 2 - size / 2 + (Math.random() * 60 - 30);
         const y = ws.clientHeight - size - 20 + (Math.random() * 30 - 15);
         const wrapper = document.createElement('div');
@@ -1626,8 +1626,8 @@
     // --- 3D cards (independent mini Three.js scenes) ---
     function add3DCard(type) {
         const ws = document.getElementById('workspace-geometry');
-        const cardSize = 160;
-        const headerH = 18;
+        const cardSize = 200;
+        const headerH = 24;
         const x = ws.clientWidth / 2 - cardSize / 2 + (Math.random() * 80 - 40);
         const y = ws.clientHeight - (cardSize + headerH) - 20 + (Math.random() * 30 - 15);
 
@@ -1659,6 +1659,7 @@
             e.stopPropagation();
             overlay.setPointerCapture(e.pointerId);
             rot3D = true;
+            state.manualRotating = true;
             prevX3D = e.clientX; prevY3D = e.clientY;
             overlay.style.cursor = 'grabbing';
         });
@@ -1669,7 +1670,7 @@
             state.mesh.rotation.x += dy * 0.01;
             prevX3D = e.clientX; prevY3D = e.clientY;
         });
-        overlay.addEventListener('pointerup', () => { rot3D = false; overlay.style.cursor = 'grab'; });
+        overlay.addEventListener('pointerup', () => { rot3D = false; state.manualRotating = false; overlay.style.cursor = 'grab'; });
         card.appendChild(overlay);
 
         // Resize handle
@@ -1717,7 +1718,7 @@
         renderer.setClearColor(0x000000, 0);
         const canvas = renderer.domElement;
         canvas.style.cssText = `display:block;width:${size}px;height:${size}px;pointer-events:none;`;
-        card.insertBefore(canvas, card.firstChild);
+        card.appendChild(canvas);
 
         scene.add(new THREE.AmbientLight(0xffffff, 0.7));
         const dl = new THREE.DirectionalLight(0xffffff, 0.8); dl.position.set(5,5,5); scene.add(dl);
@@ -1742,10 +1743,10 @@
         mesh.rotation.x = 0.4; mesh.rotation.y = 0.5;
         scene.add(mesh);
 
-        const state = {card, scene, camera, renderer, mesh, canvas, animId: null};
+        const state = {card, scene, camera, renderer, mesh, canvas, animId: null, manualRotating: false};
         function animate() {
             state.animId = requestAnimationFrame(animate);
-            if (geo3DAutoRotate) {
+            if (geo3DAutoRotate && !state.manualRotating) {
                 mesh.rotation.y += 0.006; mesh.rotation.x += 0.002;
             }
             renderer.render(scene, camera);
