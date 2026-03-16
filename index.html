@@ -227,6 +227,20 @@
                 <h3 class="font-bold text-soft-text text-sm uppercase tracking-wider text-soft-muted">Lägg till cirkel</h3>
                 <div class="flex flex-col gap-2" id="fraction-buttons"></div>
                 <hr class="border-soft-border"/>
+                <div>
+                    <h4 class="font-bold text-xs uppercase tracking-wider text-soft-muted mb-2">Visa också</h4>
+                    <div class="flex flex-col gap-2">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="frac-show-decimal" class="w-4 h-4 accent-soft-pink" onchange="setFracDisplayOptions()">
+                            <span class="text-sm text-soft-text">Decimaler <span class="text-xs text-soft-muted">(t.ex. 0,25)</span></span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="frac-show-percent" class="w-4 h-4 accent-soft-pink" onchange="setFracDisplayOptions()">
+                            <span class="text-sm text-soft-text">Procent <span class="text-xs text-soft-muted">(t.ex. 25%)</span></span>
+                        </label>
+                    </div>
+                </div>
+                <hr class="border-soft-border"/>
                 <div class="p-3 bg-soft-blueLight/15 rounded-xl text-xs text-soft-blue border border-soft-blueLight/30 leading-relaxed">
                     <i class="fas fa-arrows-alt mr-1"></i> <strong>Dra handtaget ovanför</strong> för att flytta hela cirkeln.<br>
                     <i class="fas fa-expand-arrows-alt mr-1 mt-1"></i> <strong>Dra en bit</strong> för att lyfta ur den.<br>
@@ -881,6 +895,119 @@
     // Single global frac drag state (mode: 'move' | 'resize')
     let fracDrag = null;
 
+    // Display options: show decimals and/or percentages alongside fractions
+    let fracShowDecimal = false;
+    let fracShowPercent = false;
+
+    // Format 1/d as a decimal with Swedish comma notation (e.g. 0,25)
+    function formatFracDecimal(d) {
+        const val = 1 / d;
+        let str = val.toFixed(3);
+        // Remove trailing zeros but keep at least one decimal place
+        str = str.replace(/(\.\d*[1-9])0+$/, '$1').replace(/\.(0+)$/, '.0');
+        return str.replace('.', ',');
+    }
+
+    // Format 1/d as a percentage with Swedish comma notation (e.g. 25% or 33,3%)
+    function formatFracPercent(d) {
+        const pct = 100 / d;
+        if (Number.isInteger(pct)) return pct + '%';
+        return pct.toFixed(1).replace('.', ',') + '%';
+    }
+
+    // Return array of display labels for 1/d based on current display options
+    function getFracLabels(d) {
+        const labels = [];
+        if (d === 1) {
+            labels.push('1');
+            if (fracShowDecimal) labels.push('1,0');
+            if (fracShowPercent) labels.push('100%');
+        } else {
+            labels.push('1/' + d);
+            if (fracShowDecimal) labels.push(formatFracDecimal(d));
+            if (fracShowPercent) labels.push(formatFracPercent(d));
+        }
+        return labels;
+    }
+
+    // Build SVG <text> elements for vertically stacked labels centered at (px, py)
+    function buildStackedLabels(px, py, labels, fs, textColor) {
+        if (labels.length === 0) return '';
+        const spacing = fs * 1.3;
+        let result = '';
+        for (let i = 0; i < labels.length; i++) {
+            const centerY = py - (labels.length - 1) / 2 * spacing + i * spacing;
+            const y = centerY + fs * 0.35;
+            result += `<text x="${px}" y="${y}" text-anchor="middle" font-family="Nunito,sans-serif" font-size="${fs}" font-weight="800" fill="${textColor}" pointer-events="none">${labels[i]}</text>`;
+        }
+        return result;
+    }
+
+    // Re-render all circles/slices in the workspace when display options change
+    function setFracDisplayOptions() {
+        fracShowDecimal = document.getElementById('frac-show-decimal').checked;
+        fracShowPercent = document.getElementById('frac-show-percent').checked;
+        const ws = document.getElementById('workspace-fractions');
+        ws.querySelectorAll('.frac-piece').forEach(el => {
+            const d = parseInt(el.dataset.d);
+            const color = el.dataset.color;
+            if (d && color) {
+                // Full circle – replace the SVG
+                const oldSvg = el.querySelector('svg');
+                if (oldSvg) {
+                    const tmp = document.createElement('div');
+                    tmp.innerHTML = buildCircleSVG(d, color);
+                    oldSvg.replaceWith(tmp.firstElementChild);
+                    // Re-attach slice drag listeners for the new SVG
+                    if (d > 1) {
+                        const slices = el.querySelectorAll('.frac-slice');
+                        slices.forEach((slice, i) => {
+                            let sliceDownX, sliceDownY, pulled = false, looseEl = null;
+                            slice.addEventListener('pointerdown', (e) => {
+                                if (e.button !== 0) return;
+                                e.preventDefault(); e.stopPropagation();
+                                sliceDownX = e.clientX; sliceDownY = e.clientY;
+                                pulled = false; looseEl = null;
+                                function onSliceMove(ev) {
+                                    if (ev.pointerId !== e.pointerId) return;
+                                    const dx = ev.clientX - sliceDownX, dy = ev.clientY - sliceDownY;
+                                    if (!pulled && Math.sqrt(dx*dx+dy*dy) > 10) {
+                                        pulled = true;
+                                        looseEl = spawnLooseSlice(d, i, color, ev.clientX, ev.clientY, ws, parseFloat(el.dataset.scale));
+                                        fracStartDrag(looseEl, ev);
+                                    }
+                                }
+                                function onSliceUp(ev) {
+                                    if (ev.pointerId !== e.pointerId) return;
+                                    document.removeEventListener('pointermove', onSliceMove);
+                                    document.removeEventListener('pointerup', onSliceUp);
+                                    document.removeEventListener('pointercancel', onSliceUp);
+                                    if (!pulled) fracDrag = null;
+                                }
+                                document.addEventListener('pointermove', onSliceMove);
+                                document.addEventListener('pointerup', onSliceUp);
+                                document.addEventListener('pointercancel', onSliceUp);
+                            });
+                        });
+                    }
+                }
+            } else if (el.dataset.isLoose === 'true') {
+                // Loose slice – replace the SVG
+                const ld = parseInt(el.dataset.looseD);
+                const li = parseInt(el.dataset.looseSlice);
+                const lcolor = el.dataset.looseColor;
+                if (!isNaN(ld) && !isNaN(li) && lcolor) {
+                    const oldSvg = el.querySelector('svg');
+                    if (oldSvg) {
+                        const tmp = document.createElement('div');
+                        tmp.innerHTML = buildLooseSliceSVG(ld, li, lcolor);
+                        oldSvg.replaceWith(tmp.firstElementChild);
+                    }
+                }
+            }
+        });
+    }
+
     function fracOnMove(e) {
         if (!fracDrag || fracDrag.pointerId !== e.pointerId) return;
         if (fracDrag.mode === 'resize') {
@@ -1012,10 +1139,12 @@
         const cx = FRAC_R + 4, cy = FRAC_R + 4, r = FRAC_R;
         const textColor = (color === '#dec894') ? '#5a4a1a' : '#ffffff';
         const angleStep = 360 / d;
+        const labels = getFracLabels(d);
         let paths = '';
         if (d === 1) {
             paths  = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}" stroke="white" stroke-width="2.5"/>`;
-            paths += `<text x="${cx}" y="${cy+8}" text-anchor="middle" font-family="Nunito,sans-serif" font-size="22" font-weight="800" fill="${textColor}">1</text>`;
+            const fs = labels.length <= 1 ? 22 : labels.length === 2 ? 18 : 14;
+            paths += buildStackedLabels(cx, cy, labels, fs, textColor);
         } else {
             for (let i = 0; i < d; i++) {
                 const startA = i * angleStep, endA = startA + angleStep;
@@ -1024,8 +1153,9 @@
                 const lg = angleStep > 180 ? 1 : 0;
                 paths += `<path d="M${cx},${cy} L${p1.x},${p1.y} A${r},${r},0,${lg},1,${p2.x},${p2.y}Z" fill="${color}" stroke="white" stroke-width="2.5" data-slice="${i}" class="frac-slice"/>`;
                 const lp = fracPolarXY(cx, cy, r * 0.62, startA + angleStep/2);
-                const fs = d <= 4 ? 16 : d <= 8 ? 13 : 11;
-                paths += `<text x="${lp.x}" y="${lp.y+fs*0.35}" text-anchor="middle" font-family="Nunito,sans-serif" font-size="${fs}" font-weight="800" fill="${textColor}" pointer-events="none">1/${d}</text>`;
+                const fsBase = d <= 4 ? 16 : d <= 8 ? 13 : 11;
+                const fs = labels.length >= 3 ? Math.max(8, fsBase - 2) : fsBase;
+                paths += buildStackedLabels(lp.x, lp.y, labels, fs, textColor);
             }
         }
         return `<svg width="${FRAC_SVG}" height="${FRAC_SVG}" viewBox="0 0 ${FRAC_SVG} ${FRAC_SVG}" style="overflow:visible;display:block;">${paths}</svg>`;
@@ -1129,8 +1259,7 @@
         }
     }
 
-    function spawnLooseSlice(d, sliceIndex, color, clientX, clientY, ws, scale) {
-        const wsRect = ws.getBoundingClientRect();
+    function buildLooseSliceSVG(d, sliceIndex, color) {
         const cx = FRAC_R + 4, cy = FRAC_R + 4, r = FRAC_R;
         const textColor = (color === '#dec894') ? '#5a4a1a' : '#ffffff';
         const angleStep = 360 / d;
@@ -1139,20 +1268,26 @@
         const p2 = fracPolarXY(cx, cy, r, startA + angleStep);
         const lg = angleStep > 180 ? 1 : 0;
         const lp = fracPolarXY(cx, cy, r * 0.62, startA + angleStep/2);
-        const fs = d <= 4 ? 16 : d <= 8 ? 13 : 11;
+        const labels = getFracLabels(d);
+        const fsBase = d <= 4 ? 16 : d <= 8 ? 13 : 11;
+        const fs = labels.length >= 3 ? Math.max(8, fsBase - 2) : fsBase;
+        const path = `<path d="M${cx},${cy} L${p1.x},${p1.y} A${r},${r},0,${lg},1,${p2.x},${p2.y}Z" fill="${color}" stroke="white" stroke-width="2.5"/>`;
+        return `<svg width="${FRAC_SVG}" height="${FRAC_SVG}" viewBox="0 0 ${FRAC_SVG} ${FRAC_SVG}" style="overflow:visible;display:block;">${path}${buildStackedLabels(lp.x, lp.y, labels, fs, textColor)}</svg>`;
+    }
 
-        const svg = `<svg width="${FRAC_SVG}" height="${FRAC_SVG}" viewBox="0 0 ${FRAC_SVG} ${FRAC_SVG}" style="overflow:visible;display:block;">
-            <path d="M${cx},${cy} L${p1.x},${p1.y} A${r},${r},0,${lg},1,${p2.x},${p2.y}Z" fill="${color}" stroke="white" stroke-width="2.5"/>
-            <text x="${lp.x}" y="${lp.y+fs*0.35}" text-anchor="middle" font-family="Nunito,sans-serif" font-size="${fs}" font-weight="800" fill="${textColor}" pointer-events="none">1/${d}</text>
-        </svg>`;
-
+    function spawnLooseSlice(d, sliceIndex, color, clientX, clientY, ws, scale) {
+        const wsRect = ws.getBoundingClientRect();
         const s = scale || 1;
         const el = document.createElement('div');
         const nx = clientX - wsRect.left - FRAC_SVG * s / 2;
         const ny = clientY - wsRect.top  - FRAC_SVG * s / 2;
         makeFracElement(el, nx, ny);
         el.dataset.scale = s;
-        el.innerHTML = svg;
+        el.dataset.isLoose = 'true';
+        el.dataset.looseD = d;
+        el.dataset.looseSlice = sliceIndex;
+        el.dataset.looseColor = color;
+        el.innerHTML = buildLooseSliceSVG(d, sliceIndex, color);
         ws.appendChild(el);
         applyFracTransform(el);
 
