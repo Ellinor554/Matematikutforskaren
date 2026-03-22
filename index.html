@@ -149,17 +149,17 @@
         }
 
         /* ── Volym (Volume) styles ── */
-        #vol-beaker-outer {
+        .vol-beaker-outer {
             position: relative;
-            width: 140px;
-            height: 380px;
+            width: 200px;
+            height: 500px;
             border: 3px solid rgba(91,128,165,0.55);
             border-top: none;
             border-radius: 0 0 20px 20px;
             overflow: hidden;
             background: rgba(255,255,255,0.25);
         }
-        #vol-liquid {
+        .vol-liquid {
             position: absolute;
             bottom: 0;
             left: 0;
@@ -168,7 +168,7 @@
             transition: height 0.6s cubic-bezier(0.34,1.56,0.64,1);
             border-radius: 0 0 16px 16px;
         }
-        #vol-surface-label {
+        .vol-surface-label {
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
@@ -177,7 +177,7 @@
             border: 2px solid rgba(91,128,165,0.5);
             border-radius: 8px;
             padding: 2px 8px;
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 700;
             color: #5b80a5;
             transition: bottom 0.6s cubic-bezier(0.34,1.56,0.64,1);
@@ -320,23 +320,11 @@
                         <h3 class="text-xl font-bold text-soft-text">Positionssystemet</h3>
                         <p class="text-soft-muted text-center text-sm">Bygg och utforska tal med tiobasmaterial – ental, tiotal, hundratal och tusental.</p>
                     </button>
-                </div>
-
-                <!-- Geometri section -->
-                <div class="mt-4">
-                    <h3 class="text-xl font-bold text-soft-text mb-4 mt-6 border-t border-soft-border pt-6">Geometri</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <button onclick="switchView('volym')" class="bg-soft-surface p-8 rounded-2xl shadow-sm hover:shadow-md border border-soft-border flex flex-col items-center justify-center gap-4 transition-all hover:-translate-y-1 group">
-                            <div class="w-20 h-20 rounded-full bg-soft-blueLight/30 text-soft-blue flex items-center justify-center text-3xl group-hover:scale-110 transition-transform"><i class="fas fa-fill-drip"></i></div>
-                            <h3 class="text-xl font-bold text-soft-text">Volym</h3>
-                            <p class="text-soft-muted text-center text-sm">Visualisera volymer och enhetsomvandlingar med Liter, Deciliter, Centiliter och Milliliter.</p>
-                        </button>
-                        <div class="bg-soft-surface p-8 rounded-2xl shadow-sm border border-soft-border border-dashed flex flex-col items-center justify-center gap-4 opacity-50">
-                            <div class="w-20 h-20 rounded-full bg-soft-greenLight/30 text-soft-green flex items-center justify-center text-3xl"><i class="fas fa-ruler"></i></div>
-                            <h3 class="text-xl font-bold text-soft-text">Längdenheter</h3>
-                            <p class="text-soft-muted text-center text-sm">Kommer snart – utforska meter, decimeter, centimeter och millimeter.</p>
-                        </div>
-                    </div>
+                    <button onclick="switchView('volym')" class="bg-soft-surface p-8 rounded-2xl shadow-sm hover:shadow-md border border-soft-border flex flex-col items-center justify-center gap-4 transition-all hover:-translate-y-1 group">
+                        <div class="w-20 h-20 rounded-full bg-soft-blueLight/30 text-soft-blue flex items-center justify-center text-3xl group-hover:scale-110 transition-transform"><i class="fas fa-fill-drip"></i></div>
+                        <h3 class="text-xl font-bold text-soft-text">Volym</h3>
+                        <p class="text-soft-muted text-center text-sm">Visualisera volymer och enhetsomvandlingar med Liter, Deciliter, Centiliter och Milliliter.</p>
+                    </button>
                 </div>
             </div>
         </section>
@@ -407,32 +395,10 @@
 
             <!-- Main workspace -->
             <div class="flex-1 flex items-center justify-center bg-soft-bg overflow-auto p-8">
-                <div class="flex items-end gap-8">
+                <div class="flex items-end gap-8 flex-wrap justify-center">
 
-                    <!-- Scale + Beaker assembly -->
-                    <div class="relative flex items-end gap-0">
-
-                        <!-- Scale on the left -->
-                        <div class="relative shrink-0" style="width:56px; height:380px;">
-                            <!-- Scale marks at each 0.1 L (11 marks: 0.0 to 1.0) -->
-                            <div id="vol-scale-container" class="absolute inset-0"></div>
-                        </div>
-
-                        <!-- Beaker -->
-                        <div class="relative" style="flex-shrink:0;">
-                            <!-- Top rim of beaker -->
-                            <div style="width:140px; height:6px; border-left:3px solid rgba(91,128,165,0.55); border-right:3px solid rgba(91,128,165,0.55); border-top:3px solid rgba(91,128,165,0.55); border-radius:4px 4px 0 0; background:transparent;"></div>
-                            <!-- Beaker body -->
-                            <div id="vol-beaker-outer">
-                                <div id="vol-liquid" style="height:0%;"></div>
-                                <div id="vol-surface-label">0,000 L</div>
-                            </div>
-                            <!-- Overflow indicator (hidden by default) -->
-                            <div id="vol-overflow-msg" class="hidden mt-2 px-3 py-1 bg-soft-yellow/40 border border-soft-yellowDark/40 rounded-lg text-xs font-bold text-soft-yellowDark text-center">
-                                Behållaren är full!
-                            </div>
-                        </div>
-                    </div>
+                    <!-- Beakers rendered dynamically by JS -->
+                    <div id="vol-beakers-row" class="flex items-end gap-6 flex-wrap justify-center"></div>
 
                     <!-- Info panel -->
                     <div class="bg-soft-surface rounded-2xl shadow-sm border border-soft-border p-6 max-w-xs">
@@ -1028,7 +994,6 @@
         initStats();
         initKoord();
         initPosSystem();
-        initVolymScale();
     }
 
     /**
@@ -3204,25 +3169,82 @@
     // ===================== VOLYM (VOLUME) =====================
     let volymMl = 0; // total volume in millilitres
 
-    /** Build the scale tick marks next to the beaker (0.0 L – 1.0 L, 11 marks). */
-    function initVolymScale() {
-        const container = document.getElementById('vol-scale-container');
-        if (!container) return;
-        container.innerHTML = '';
-        const beakerH = 380; // px – must match CSS height of vol-beaker-outer
+    const BEAKER_H = 500;       // px – height of each beaker body
+    const BEAKER_W = 200;       // px – width of each beaker body
+    const SCALE_W  = 68;        // px – width of scale column
+    const MAX_ML_PER_BEAKER = 1000; // 1 litre per beaker
+
+    /** Build scale tick-mark HTML string for one beaker (0.0 L – 1.0 L, 11 marks). */
+    function buildScaleHTML() {
+        let html = '';
         for (let i = 0; i <= 10; i++) {
             const liters = (10 - i) / 10; // 1.0 at top, 0.0 at bottom
-            const pct = i / 10; // 0 = top, 1 = bottom
-            const topPx = Math.round(pct * beakerH);
-            const mark = document.createElement('div');
-            mark.className = 'vol-scale-mark';
-            mark.style.cssText = `top:${topPx}px; right:0; left:0; justify-content:flex-end;`;
-            // line extends to touch beaker edge
-            mark.innerHTML = `
-                <span class="vol-scale-label" style="min-width:36px; text-align:right;">${liters.toFixed(1)}</span>
-                <span class="vol-scale-line" style="width:${liters % 0.5 === 0 ? 14 : 8}px;"></span>
-            `;
-            container.appendChild(mark);
+            const topPx  = Math.round((i / 10) * BEAKER_H);
+            const lineW  = liters % 0.5 === 0 ? 14 : 8;
+            html += `<div class="vol-scale-mark" style="top:${topPx}px; right:0; left:0; justify-content:flex-end;">` +
+                    `<span class="vol-scale-label" style="min-width:36px; text-align:right;">${liters.toFixed(1)}</span>` +
+                    `<span class="vol-scale-line" style="width:${lineW}px;"></span>` +
+                    `</div>`;
+        }
+        return html;
+    }
+
+    /** Build HTML for one beaker assembly (scale + rim + body). */
+    function buildBeakerHTML(fillPct, labelText, showLabel) {
+        const fillPx      = (fillPct / 100) * BEAKER_H;
+        const labelBottom = Math.max(fillPx + 4, 4);
+        return `<div class="relative flex items-end gap-0">` +
+            `<div class="relative shrink-0" style="width:${SCALE_W}px; height:${BEAKER_H}px;">` +
+                `<div class="absolute inset-0">${buildScaleHTML()}</div>` +
+            `</div>` +
+            `<div class="relative" style="flex-shrink:0;">` +
+                `<div style="width:${BEAKER_W}px; height:6px; border-left:3px solid rgba(91,128,165,0.55); border-right:3px solid rgba(91,128,165,0.55); border-top:3px solid rgba(91,128,165,0.55); border-radius:4px 4px 0 0; background:transparent;"></div>` +
+                `<div class="vol-beaker-outer">` +
+                    `<div class="vol-liquid" style="height:${fillPct}%;"></div>` +
+                    `<div class="vol-surface-label" style="bottom:${labelBottom}px; display:${showLabel ? 'block' : 'none'};">${labelText}</div>` +
+                `</div>` +
+            `</div>` +
+        `</div>`;
+    }
+
+    /** ml contained in beaker at index i, based on current volymMl. */
+    function beakerMl(i) {
+        return Math.min(MAX_ML_PER_BEAKER, Math.max(0, volymMl - i * MAX_ML_PER_BEAKER));
+    }
+
+    /** Render or update beaker assemblies based on current volymMl. */
+    function renderBeakers() {
+        const row = document.getElementById('vol-beakers-row');
+        if (!row) return;
+
+        const fullBeakers  = Math.floor(volymMl / MAX_ML_PER_BEAKER);
+        const remainder    = volymMl % MAX_ML_PER_BEAKER;
+        const totalBeakers = Math.max(1, fullBeakers + (remainder > 0 ? 1 : 0));
+
+        const current = row.querySelectorAll('.vol-beaker-outer');
+        if (current.length !== totalBeakers) {
+            // Number of beakers changed – re-render all
+            let html = '';
+            for (let i = 0; i < totalBeakers; i++) {
+                const ml  = beakerMl(i);
+                const pct = (ml / MAX_ML_PER_BEAKER) * 100;
+                html += buildBeakerHTML(pct, formatLiters(ml), ml > 0);
+            }
+            row.innerHTML = html;
+        } else {
+            // Same count – update only the last beaker in-place (keeps CSS transition)
+            const lastBeaker = current[totalBeakers - 1];
+            const ml         = beakerMl(totalBeakers - 1);
+            const pct        = (ml / MAX_ML_PER_BEAKER) * 100;
+            const fillPx     = (pct / 100) * BEAKER_H;
+            const liquid     = lastBeaker.querySelector('.vol-liquid');
+            const lbl        = lastBeaker.querySelector('.vol-surface-label');
+            if (liquid) liquid.style.height = pct + '%';
+            if (lbl) {
+                lbl.textContent   = formatLiters(ml);
+                lbl.style.bottom  = Math.max(fillPx + 4, 4) + 'px';
+                lbl.style.display = ml > 0 ? 'block' : 'none';
+            }
         }
     }
 
@@ -3246,28 +3268,8 @@
 
     /** Re-render all volume UI elements based on current volymMl. */
     function updateVolumeUI() {
-        const beakerH = 380; // px
-        const maxMl = 1000; // visual tank capacity
-
-        // Liquid level (capped at 100%)
-        const fillPct = Math.min(volymMl / maxMl, 1) * 100;
-        const liquidEl = document.getElementById('vol-liquid');
-        if (liquidEl) liquidEl.style.height = fillPct + '%';
-
-        // Surface label – position follows the liquid surface
-        const labelEl = document.getElementById('vol-surface-label');
-        if (labelEl) {
-            labelEl.textContent = formatLiters(volymMl);
-            const fillPx = Math.min(volymMl / maxMl, 1) * beakerH;
-            // Place label just above the liquid surface
-            const labelBottomPx = Math.max(fillPx + 4, 4);
-            labelEl.style.bottom = labelBottomPx + 'px';
-            labelEl.style.display = volymMl > 0 ? 'block' : 'none';
-        }
-
-        // Overflow indicator
-        const overflowEl = document.getElementById('vol-overflow-msg');
-        if (overflowEl) overflowEl.classList.toggle('hidden', volymMl <= maxMl);
+        // Render beaker(s)
+        renderBeakers();
 
         // Representation boxes – place-value breakdown
         const liters = Math.floor(volymMl / 1000);
