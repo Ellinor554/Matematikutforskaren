@@ -147,6 +147,118 @@
         :fullscreen #analog-clock, :-webkit-full-screen #analog-clock {
             width: min(90vw, 82vh) !important; height: min(90vw, 82vh) !important;
         }
+
+        /* ── Volym (Volume) styles ── */
+        #vol-beaker-outer {
+            position: relative;
+            width: 140px;
+            height: 380px;
+            border: 3px solid rgba(91,128,165,0.55);
+            border-top: none;
+            border-radius: 0 0 20px 20px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.25);
+        }
+        #vol-liquid {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(91,128,165,0.75), rgba(141,177,209,0.55));
+            transition: height 0.6s cubic-bezier(0.34,1.56,0.64,1);
+            border-radius: 0 0 16px 16px;
+        }
+        #vol-surface-label {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            background: rgba(255,255,255,0.92);
+            border: 2px solid rgba(91,128,165,0.5);
+            border-radius: 8px;
+            padding: 2px 8px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #5b80a5;
+            transition: bottom 0.6s cubic-bezier(0.34,1.56,0.64,1);
+            pointer-events: none;
+            z-index: 5;
+        }
+        .vol-scale-mark {
+            position: absolute;
+            right: 0;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .vol-scale-line {
+            height: 1px;
+            background: rgba(91,128,165,0.5);
+        }
+        .vol-scale-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #5b80a5;
+            white-space: nowrap;
+        }
+        .vol-repr-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .vol-repr-digit {
+            width: 52px;
+            height: 52px;
+            border-radius: 10px;
+            background: white;
+            border: 2px solid #d6d4d0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: 800;
+            color: #4a4b50;
+            box-shadow: 0 2px 6px rgba(74,75,80,0.08);
+            transition: background 0.2s, color 0.2s;
+        }
+        .vol-repr-digit.active {
+            background: #5b80a5;
+            color: white;
+            border-color: #5b80a5;
+        }
+        .vol-repr-unit {
+            font-size: 11px;
+            font-weight: 700;
+            color: #8c8d92;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .vol-add-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            background: #f4f3ef;
+            border: 1.5px solid #d6d4d0;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #4a4b50;
+            cursor: pointer;
+            transition: all 0.15s;
+            width: 100%;
+            text-align: left;
+        }
+        .vol-add-btn:hover {
+            background: white;
+            box-shadow: 0 2px 8px rgba(74,75,80,0.12);
+            border-color: #5b80a5;
+            color: #5b80a5;
+        }
+        .vol-add-btn:active {
+            transform: scale(0.97);
+        }
     </style>
 </head>
 <body class="text-soft-text flex flex-col h-screen">
@@ -208,6 +320,130 @@
                         <h3 class="text-xl font-bold text-soft-text">Positionssystemet</h3>
                         <p class="text-soft-muted text-center text-sm">Bygg och utforska tal med tiobasmaterial – ental, tiotal, hundratal och tusental.</p>
                     </button>
+                </div>
+
+                <!-- Geometri section -->
+                <div class="mt-4">
+                    <h3 class="text-xl font-bold text-soft-text mb-4 mt-6 border-t border-soft-border pt-6">Geometri</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <button onclick="switchView('volym')" class="bg-soft-surface p-8 rounded-2xl shadow-sm hover:shadow-md border border-soft-border flex flex-col items-center justify-center gap-4 transition-all hover:-translate-y-1 group">
+                            <div class="w-20 h-20 rounded-full bg-soft-blueLight/30 text-soft-blue flex items-center justify-center text-3xl group-hover:scale-110 transition-transform"><i class="fas fa-fill-drip"></i></div>
+                            <h3 class="text-xl font-bold text-soft-text">Volym</h3>
+                            <p class="text-soft-muted text-center text-sm">Visualisera volymer och enhetsomvandlingar med Liter, Deciliter, Centiliter och Milliliter.</p>
+                        </button>
+                        <div class="bg-soft-surface p-8 rounded-2xl shadow-sm border border-soft-border border-dashed flex flex-col items-center justify-center gap-4 opacity-50">
+                            <div class="w-20 h-20 rounded-full bg-soft-greenLight/30 text-soft-green flex items-center justify-center text-3xl"><i class="fas fa-ruler"></i></div>
+                            <h3 class="text-xl font-bold text-soft-text">Längdenheter</h3>
+                            <p class="text-soft-muted text-center text-sm">Kommer snart – utforska meter, decimeter, centimeter och millimeter.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VOLYM VIEW -->
+        <section id="view-volym" class="view-section flex-row h-full">
+            <!-- Floating panel (visible only in presentation / fullscreen mode) -->
+            <div id="volym-float-panel" class="view-float-panel">
+                <button onclick="toggleViewSidebar('volym')" aria-expanded="false" class="view-float-btn bg-white border border-soft-border rounded-xl px-3 py-2 text-sm font-bold text-soft-blue flex items-center gap-2 shadow-lg hover:bg-soft-blueLight/10 transition-colors" title="Visa/dölj kontroller">
+                    <i class="fas fa-sliders-h text-base"></i><span id="volym-ctrl-lbl">Kontroller</span>
+                </button>
+                <button onclick="toggleViewFullscreen()" class="view-float-btn bg-white border border-soft-border rounded-xl px-3 py-2 text-sm font-bold text-soft-text flex items-center gap-2 shadow-lg hover:bg-soft-bg transition-colors" title="Avsluta helskärm">
+                    <i class="fas fa-compress text-base"></i> Avsluta
+                </button>
+            </div>
+
+            <!-- Sidebar -->
+            <div id="volym-sidebar" data-view-panel="side" class="w-64 bg-soft-surface shadow-md z-10 p-5 flex flex-col gap-3 overflow-y-auto border-r border-soft-border shrink-0">
+                <h3 class="font-bold text-soft-text text-sm uppercase tracking-wider text-soft-muted">Lägg till mängd</h3>
+                <button class="vol-add-btn" onclick="addVolume(1000)">
+                    <span class="w-8 h-8 rounded-lg bg-soft-blue text-white flex items-center justify-center font-bold text-sm shrink-0">L</span>
+                    <span>+ 1 Liter (L)</span>
+                </button>
+                <button class="vol-add-btn" onclick="addVolume(100)">
+                    <span class="w-8 h-8 rounded-lg bg-soft-blueLight text-white flex items-center justify-center font-bold text-sm shrink-0">dl</span>
+                    <span>+ 1 Deciliter (dl)</span>
+                </button>
+                <button class="vol-add-btn" onclick="addVolume(10)">
+                    <span class="w-8 h-8 rounded-lg bg-soft-greenLight text-white flex items-center justify-center font-bold text-sm shrink-0">cl</span>
+                    <span>+ 1 Centiliter (cl)</span>
+                </button>
+                <button class="vol-add-btn" onclick="addVolume(1)">
+                    <span class="w-8 h-8 rounded-lg bg-soft-green text-white flex items-center justify-center font-bold text-sm shrink-0">ml</span>
+                    <span>+ 1 Milliliter (ml)</span>
+                </button>
+
+                <hr class="border-soft-border mt-1"/>
+
+                <!-- Representation -->
+                <div>
+                    <h4 class="font-bold text-xs uppercase tracking-wider text-soft-muted mb-3">Representation</h4>
+                    <div class="flex justify-between gap-2">
+                        <div class="vol-repr-box">
+                            <div class="vol-repr-digit" id="vol-repr-L">0</div>
+                            <div class="vol-repr-unit">L</div>
+                        </div>
+                        <div class="vol-repr-box">
+                            <div class="vol-repr-digit" id="vol-repr-dl">0</div>
+                            <div class="vol-repr-unit">dl</div>
+                        </div>
+                        <div class="vol-repr-box">
+                            <div class="vol-repr-digit" id="vol-repr-cl">0</div>
+                            <div class="vol-repr-unit">cl</div>
+                        </div>
+                        <div class="vol-repr-box">
+                            <div class="vol-repr-digit" id="vol-repr-ml">0</div>
+                            <div class="vol-repr-unit">ml</div>
+                        </div>
+                    </div>
+                    <div class="mt-3 p-3 bg-soft-blueLight/10 border border-soft-blueLight/25 rounded-xl text-xs text-soft-blue leading-relaxed">
+                        Totalt: <span id="vol-total-display" class="font-bold">0,000 L</span>
+                    </div>
+                </div>
+
+                <hr class="border-soft-border"/>
+                <button onclick="resetVolume()" class="bg-soft-text hover:bg-soft-muted text-white p-2 rounded-lg text-sm font-semibold mt-auto"><i class="fas fa-trash mr-1"></i> Töm behållaren</button>
+            </div>
+
+            <!-- Main workspace -->
+            <div class="flex-1 flex items-center justify-center bg-soft-bg overflow-auto p-8">
+                <div class="flex items-end gap-8">
+
+                    <!-- Scale + Beaker assembly -->
+                    <div class="relative flex items-end gap-0">
+
+                        <!-- Scale on the left -->
+                        <div class="relative shrink-0" style="width:56px; height:380px;">
+                            <!-- Scale marks at each 0.1 L (11 marks: 0.0 to 1.0) -->
+                            <div id="vol-scale-container" class="absolute inset-0"></div>
+                        </div>
+
+                        <!-- Beaker -->
+                        <div class="relative" style="flex-shrink:0;">
+                            <!-- Top rim of beaker -->
+                            <div style="width:140px; height:6px; border-left:3px solid rgba(91,128,165,0.55); border-right:3px solid rgba(91,128,165,0.55); border-top:3px solid rgba(91,128,165,0.55); border-radius:4px 4px 0 0; background:transparent;"></div>
+                            <!-- Beaker body -->
+                            <div id="vol-beaker-outer">
+                                <div id="vol-liquid" style="height:0%;"></div>
+                                <div id="vol-surface-label">0,000 L</div>
+                            </div>
+                            <!-- Overflow indicator (hidden by default) -->
+                            <div id="vol-overflow-msg" class="hidden mt-2 px-3 py-1 bg-soft-yellow/40 border border-soft-yellowDark/40 rounded-lg text-xs font-bold text-soft-yellowDark text-center">
+                                Behållaren är full!
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Info panel -->
+                    <div class="bg-soft-surface rounded-2xl shadow-sm border border-soft-border p-6 max-w-xs">
+                        <h4 class="font-bold text-soft-text mb-3 flex items-center gap-2"><i class="fas fa-info-circle text-soft-blue"></i> Enhetsrelationer</h4>
+                        <div class="text-sm text-soft-muted space-y-1 leading-relaxed">
+                            <p>1 <strong class="text-soft-text">L</strong> = 10 dl = 100 cl = 1&nbsp;000 ml</p>
+                            <p>1 <strong class="text-soft-text">dl</strong> = 10 cl = 100 ml</p>
+                            <p>1 <strong class="text-soft-text">cl</strong> = 10 ml</p>
+                        </div>
+                        <div id="vol-info-extra" class="mt-4 pt-3 border-t border-soft-border text-xs text-soft-blue font-semibold hidden"></div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -792,6 +1028,7 @@
         initStats();
         initKoord();
         initPosSystem();
+        initVolymScale();
     }
 
     /**
@@ -803,6 +1040,7 @@
         statistics: { onEnter: renderChart,            onResize: renderChart },
         clock:      { onEnter: initClockDragIfNeeded },
         koordinat:  { onEnter: renderKoord,            onResize: renderKoord },
+        volym:      { onEnter: updateVolumeUI },
     };
 
     /**
@@ -828,7 +1066,7 @@
             cleanup3D();
         } else {
             btnHome.classList.remove('hidden');
-            const titles = {fractions:'Bråk',numberlines:'Tallinjer',geometry:'Geometriska objekt',counting:'Räkning',clock:'Klockan',statistics:'Statistik',koordinat:'Koordinatsystem',positionssystem:'Positionssystemet'};
+            const titles = {fractions:'Bråk',numberlines:'Tallinjer',geometry:'Geometriska objekt',counting:'Räkning',clock:'Klockan',statistics:'Statistik',koordinat:'Koordinatsystem',positionssystem:'Positionssystemet',volym:'Volym'};
             title.innerText = titles[viewId];
             // Run the view's onEnter hook if registered
             const onEnter = VIEW_REGISTRY[viewId]?.onEnter;
@@ -842,7 +1080,8 @@
                 clock: 'bg-soft-purple text-white',
                 statistics: 'bg-soft-teal text-white',
                 koordinat: 'bg-soft-purple text-white',
-                positionssystem: 'bg-soft-blue text-white'
+                positionssystem: 'bg-soft-blue text-white',
+                volym: 'bg-soft-blue text-white'
             };
             const colorCls = fsBtnColors[viewId] || 'bg-soft-blue text-white';
             document.getElementById('controls-area').innerHTML =
@@ -2960,6 +3199,112 @@
         const ws = document.getElementById('workspace-positionssystem');
         if (ws) ws.querySelectorAll('.draggable-item').forEach(el => el.remove());
         updatePosCounter();
+    }
+
+    // ===================== VOLYM (VOLUME) =====================
+    let volymMl = 0; // total volume in millilitres
+
+    /** Build the scale tick marks next to the beaker (0.0 L – 1.0 L, 11 marks). */
+    function initVolymScale() {
+        const container = document.getElementById('vol-scale-container');
+        if (!container) return;
+        container.innerHTML = '';
+        const beakerH = 380; // px – must match CSS height of vol-beaker-outer
+        for (let i = 0; i <= 10; i++) {
+            const liters = (10 - i) / 10; // 1.0 at top, 0.0 at bottom
+            const pct = i / 10; // 0 = top, 1 = bottom
+            const topPx = Math.round(pct * beakerH);
+            const mark = document.createElement('div');
+            mark.className = 'vol-scale-mark';
+            mark.style.cssText = `top:${topPx}px; right:0; left:0; justify-content:flex-end;`;
+            // line extends to touch beaker edge
+            mark.innerHTML = `
+                <span class="vol-scale-label" style="min-width:36px; text-align:right;">${liters.toFixed(1)}</span>
+                <span class="vol-scale-line" style="width:${liters % 0.5 === 0 ? 14 : 8}px;"></span>
+            `;
+            container.appendChild(mark);
+        }
+    }
+
+    /** Format ml as Swedish decimal string in Liters, e.g. 1350 → "1,350 L". */
+    function formatLiters(ml) {
+        const liters = ml / 1000;
+        return liters.toLocaleString('sv-SE', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + ' L';
+    }
+
+    /** Add millilitres to the tank and refresh UI. */
+    function addVolume(ml) {
+        volymMl += ml;
+        updateVolumeUI();
+    }
+
+    /** Empty the tank. */
+    function resetVolume() {
+        volymMl = 0;
+        updateVolumeUI();
+    }
+
+    /** Re-render all volume UI elements based on current volymMl. */
+    function updateVolumeUI() {
+        const beakerH = 380; // px
+        const maxMl = 1000; // visual tank capacity
+
+        // Liquid level (capped at 100%)
+        const fillPct = Math.min(volymMl / maxMl, 1) * 100;
+        const liquidEl = document.getElementById('vol-liquid');
+        if (liquidEl) liquidEl.style.height = fillPct + '%';
+
+        // Surface label – position follows the liquid surface
+        const labelEl = document.getElementById('vol-surface-label');
+        if (labelEl) {
+            labelEl.textContent = formatLiters(volymMl);
+            const fillPx = Math.min(volymMl / maxMl, 1) * beakerH;
+            // Place label just above the liquid surface
+            const labelBottomPx = Math.max(fillPx + 4, 4);
+            labelEl.style.bottom = labelBottomPx + 'px';
+            labelEl.style.display = volymMl > 0 ? 'block' : 'none';
+        }
+
+        // Overflow indicator
+        const overflowEl = document.getElementById('vol-overflow-msg');
+        if (overflowEl) overflowEl.classList.toggle('hidden', volymMl <= maxMl);
+
+        // Representation boxes – place-value breakdown
+        const liters = Math.floor(volymMl / 1000);
+        const dl     = Math.floor((volymMl % 1000) / 100);
+        const cl     = Math.floor((volymMl % 100) / 10);
+        const ml     = volymMl % 10;
+
+        function setReprDigit(id, value) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.textContent = value;
+            el.classList.toggle('active', value > 0);
+        }
+        setReprDigit('vol-repr-L',  liters);
+        setReprDigit('vol-repr-dl', dl);
+        setReprDigit('vol-repr-cl', cl);
+        setReprDigit('vol-repr-ml', ml);
+
+        // Total display
+        const totalEl = document.getElementById('vol-total-display');
+        if (totalEl) totalEl.textContent = formatLiters(volymMl);
+
+        // Extra info panel – show conversion hint when volume > 0
+        const infoEl = document.getElementById('vol-info-extra');
+        if (infoEl) {
+            if (volymMl > 0) {
+                const totalDl = (volymMl / 100).toLocaleString('sv-SE', { maximumFractionDigits: 1 });
+                infoEl.innerHTML = `
+                    ${formatLiters(volymMl)} =
+                    <strong>${totalDl} dl</strong> =
+                    <strong>${volymMl.toLocaleString('sv-SE')} ml</strong>
+                `;
+                infoEl.classList.remove('hidden');
+            } else {
+                infoEl.classList.add('hidden');
+            }
+        }
     }
 
     window.onload = initApp;
