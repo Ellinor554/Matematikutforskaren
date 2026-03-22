@@ -402,8 +402,13 @@
 
                     <!-- Info panel -->
                     <div class="bg-soft-surface rounded-2xl shadow-sm border border-soft-border p-6 max-w-xs">
-                        <h4 class="font-bold text-soft-text mb-3 flex items-center gap-2"><i class="fas fa-info-circle text-soft-blue"></i> Enhetsrelationer</h4>
-                        <div class="text-sm text-soft-muted space-y-1 leading-relaxed">
+                        <h4 class="font-bold text-soft-text mb-3 flex items-center gap-2">
+                            <i class="fas fa-info-circle text-soft-blue"></i> Enhetsrelationer
+                            <button id="vol-enhets-toggle" onclick="toggleEnhetsrelationer()" class="ml-auto text-soft-muted hover:text-soft-blue transition-colors" title="Visa/dölj enhetsrelationer" aria-expanded="true">
+                                <i id="vol-enhets-icon" class="fas fa-chevron-up text-xs"></i>
+                            </button>
+                        </h4>
+                        <div id="vol-enhets-body" class="text-sm text-soft-muted space-y-1 leading-relaxed">
                             <p>1 <strong class="text-soft-text">L</strong> = 10 dl = 100 cl = 1&nbsp;000 ml</p>
                             <p>1 <strong class="text-soft-text">dl</strong> = 10 cl = 100 ml</p>
                             <p>1 <strong class="text-soft-text">cl</strong> = 10 ml</p>
@@ -3172,6 +3177,8 @@
     const BEAKER_H = 500;       // px – height of each beaker body
     const BEAKER_W = 200;       // px – width of each beaker body
     const SCALE_W  = 68;        // px – width of scale column
+    const BEAKER_BORDER_B = 3;  // px – bottom border of .vol-beaker-outer (border-box)
+    const BEAKER_INNER_H = BEAKER_H - BEAKER_BORDER_B; // usable inner liquid height
     const MAX_ML_PER_BEAKER = 1000; // 1 litre per beaker
 
     /** Build scale tick-mark HTML string for one beaker (0.0 L – 1.0 L, 11 marks). */
@@ -3179,7 +3186,8 @@
         let html = '';
         for (let i = 0; i <= 10; i++) {
             const liters = (10 - i) / 10; // 1.0 at top, 0.0 at bottom
-            const topPx  = Math.round((i / 10) * BEAKER_H);
+            // Offset by BEAKER_BORDER_B so marks align with the liquid inside the border-box beaker
+            const topPx  = Math.round((i / 10) * BEAKER_INNER_H);
             const lineW  = liters % 0.5 === 0 ? 14 : 8;
             html += `<div class="vol-scale-mark" style="top:${topPx}px; right:0; left:0; justify-content:flex-end;">` +
                     `<span class="vol-scale-label" style="min-width:36px; text-align:right;">${liters.toFixed(1)}</span>` +
@@ -3191,7 +3199,7 @@
 
     /** Build HTML for one beaker assembly (scale + rim + body). */
     function buildBeakerHTML(fillPct, labelText, showLabel) {
-        const fillPx      = (fillPct / 100) * BEAKER_H;
+        const fillPx      = (fillPct / 100) * BEAKER_INNER_H;
         const labelBottom = Math.max(fillPx + 4, 4);
         return `<div class="relative flex items-end gap-0">` +
             `<div class="relative shrink-0" style="width:${SCALE_W}px; height:${BEAKER_H}px;">` +
@@ -3236,7 +3244,7 @@
             const lastBeaker = current[totalBeakers - 1];
             const ml         = beakerMl(totalBeakers - 1);
             const pct        = (ml / MAX_ML_PER_BEAKER) * 100;
-            const fillPx     = (pct / 100) * BEAKER_H;
+            const fillPx     = (pct / 100) * BEAKER_INNER_H;
             const liquid     = lastBeaker.querySelector('.vol-liquid');
             const lbl        = lastBeaker.querySelector('.vol-surface-label');
             if (liquid) liquid.style.height = pct + '%';
@@ -3248,10 +3256,10 @@
         }
     }
 
-    /** Format ml as Swedish decimal string in Liters, e.g. 1350 → "1,350 L". */
+    /** Format ml as Swedish decimal string in Liters, e.g. 1200 → "1,2 L". */
     function formatLiters(ml) {
         const liters = ml / 1000;
-        return liters.toLocaleString('sv-SE', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + ' L';
+        return liters.toLocaleString('sv-SE', { minimumFractionDigits: 0, maximumFractionDigits: 3 }) + ' L';
     }
 
     /** Add millilitres to the tank and refresh UI. */
@@ -3297,9 +3305,11 @@
         if (infoEl) {
             if (volymMl > 0) {
                 const totalDl = (volymMl / 100).toLocaleString('sv-SE', { maximumFractionDigits: 1 });
+                const totalCl = Math.round(volymMl / 10).toLocaleString('sv-SE');
                 infoEl.innerHTML = `
                     ${formatLiters(volymMl)} =
                     <strong>${totalDl} dl</strong> =
+                    <strong>${totalCl} cl</strong> =
                     <strong>${volymMl.toLocaleString('sv-SE')} ml</strong>
                 `;
                 infoEl.classList.remove('hidden');
@@ -3307,6 +3317,20 @@
                 infoEl.classList.add('hidden');
             }
         }
+    }
+
+    /** Toggle visibility of the Enhetsrelationer info box. */
+    function toggleEnhetsrelationer() {
+        const body = document.getElementById('vol-enhets-body');
+        const icon = document.getElementById('vol-enhets-icon');
+        const btn  = document.getElementById('vol-enhets-toggle');
+        if (!body) return;
+        const isHidden = body.classList.toggle('hidden');
+        if (icon) {
+            icon.classList.toggle('fa-chevron-up', !isHidden);
+            icon.classList.toggle('fa-chevron-down', isHidden);
+        }
+        if (btn) btn.setAttribute('aria-expanded', String(!isHidden));
     }
 
     window.onload = initApp;
