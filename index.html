@@ -999,7 +999,11 @@
                     <input type="checkbox" id="pos-auto-exchange" class="rounded" checked>
                     <span>Automatisk växling (10→1)</span>
                 </label>
-                <div class="bg-soft-bg rounded-xl p-4 border border-soft-border">
+                <label class="flex items-center gap-2 text-sm text-soft-text cursor-pointer select-none">
+                    <input type="checkbox" id="pos-show-columns" class="rounded" checked onchange="togglePosShowColumns()">
+                    <span>Visa kolumner (T-H-T-E)</span>
+                </label>
+                <div id="pos-visible-cols-section" class="bg-soft-bg rounded-xl p-4 border border-soft-border">
                     <h3 class="font-bold text-soft-text text-sm mb-3">Synliga kolumner</h3>
                     <div class="flex flex-col gap-2 text-sm">
                         <label class="flex items-center gap-2 cursor-pointer select-none">
@@ -1035,6 +1039,7 @@
     let currentView = 'home';
     let selectedItem = null;
     let posVisibleCols = { tusental: true, hundratal: true, tiotal: true, ental: true };
+    let posShowColumns = true;
     const POS_COL_DEFS = [
         { key: 'tusental',  label: 'Tusental',  color: '#1565C0', bg: 'rgba(30,136,229,0.06)',  border: 'rgba(21,101,192,0.25)' },
         { key: 'hundratal', label: 'Hundratal', color: '#2E7D32', bg: 'rgba(56,142,60,0.06)',   border: 'rgba(46,125,50,0.25)' },
@@ -3197,6 +3202,7 @@
         if (!ws) return;
         // Add column headers and dividers (remove any existing ones first)
         ws.querySelectorAll('.pos-col-header, .pos-col-divider').forEach(el => el.remove());
+        if (!posShowColumns) { updatePosCounter(); return; }
         const cols = POS_COL_DEFS.filter(c => posVisibleCols[c.key]);
         const n = cols.length;
         if (n === 0) { updatePosCounter(); return; }
@@ -3240,6 +3246,14 @@
         initPosSystem();
     }
 
+    function togglePosShowColumns() {
+        const cb = document.getElementById('pos-show-columns');
+        posShowColumns = cb ? cb.checked : true;
+        const colSection = document.getElementById('pos-visible-cols-section');
+        if (colSection) colSection.style.display = posShowColumns ? '' : 'none';
+        initPosSystem();
+    }
+
     function updatePosSidebarVisibility() {
         const sidebar = document.getElementById('positionssystem-sidebar');
         if (!sidebar) return;
@@ -3254,15 +3268,10 @@
     // Returns {x, y} for the next available slot in the column for the given type
     function getPosColumnPlacement(type) {
         const ws = document.getElementById('workspace-positionssystem');
-        if (!ws) return { x: 50, y: 50 };
+        if (!ws) return { x: 40, y: 40 };
         const rect = ws.getBoundingClientRect();
         const wsWidth = rect.width > 0 ? rect.width : 800;
-        const visibleCols = POS_COL_DEFS.filter(c => posVisibleCols[c.key]).map(c => c.key);
-        const col = visibleCols.indexOf(type);
-        if (col === -1) return { x: 50, y: 50 };
-        const n = visibleCols.length;
-        const colW = wsWidth / n;
-        // Default block sizes (used as grid unit for consistent spacing)
+        // Default block sizes
         const pieceSizes = {
             tusental: { w: 121, h: 122 },
             hundratal: { w: 121, h: 68 },
@@ -3270,6 +3279,27 @@
             ental: { w: 36, h: 40 }
         };
         const sz = pieceSizes[type] || { w: 80, h: 60 };
+        const GRID = 40; // matches cm-grid background-size
+        if (!posShowColumns) {
+            // Free-form placement: snap to 40px grid and flow items across workspace
+            const count = ws.querySelectorAll(`[data-pos-type="${type}"]`).length;
+            const snappedW = Math.ceil(sz.w / GRID) * GRID;
+            const snappedH = Math.ceil(sz.h / GRID) * GRID;
+            const pad = GRID;
+            // How many grid-snapped pieces fit per row within the workspace (minus padding on both sides)
+            const maxPerRow = Math.max(1, Math.floor((wsWidth - pad * 2 + GRID) / (snappedW + GRID)));
+            const row = Math.floor(count / maxPerRow);
+            const col = count % maxPerRow;
+            return {
+                x: pad + col * (snappedW + GRID),
+                y: pad + row * (snappedH + GRID)
+            };
+        }
+        const visibleCols = POS_COL_DEFS.filter(c => posVisibleCols[c.key]).map(c => c.key);
+        const col = visibleCols.indexOf(type);
+        if (col === -1) return { x: GRID, y: GRID };
+        const n = visibleCols.length;
+        const colW = wsWidth / n;
         const gap = 8;
         const pad = 10;
         const headerH = 44; // 40px header height + 4px gap before first piece
@@ -3280,6 +3310,14 @@
         const x = col * colW + pad + colInRow * (sz.w + gap);
         const y = headerH + row * (sz.h + gap);
         return { x, y };
+    }
+
+    // Snap a positionssystem piece to the 40px cm-grid on drag end
+    function snapPosToGrid(el) {
+        const GRID = 40;
+        el.dataset.x = Math.round((parseFloat(el.dataset.x) || 0) / GRID) * GRID;
+        el.dataset.y = Math.round((parseFloat(el.dataset.y) || 0) / GRID) * GRID;
+        updateTransform(el);
     }
 
     function createPosMoneySVG(type) {
@@ -3410,7 +3448,7 @@
         _attachPosPieceEvents(div);
         ws.appendChild(div);
         updateTransform(div);
-        makeDraggable(div, 'workspace-positionssystem');
+        makeDraggable(div, 'workspace-positionssystem', snapPosToGrid);
         addGeoResizeHandle(div);
         updatePosCounter();
         checkAutoExchange();
@@ -3468,7 +3506,7 @@
         _attachPosPieceEvents(div);
         ws.appendChild(div);
         updateTransform(div);
-        makeDraggable(div, 'workspace-positionssystem');
+        makeDraggable(div, 'workspace-positionssystem', snapPosToGrid);
         addGeoResizeHandle(div);
     }
 
