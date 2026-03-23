@@ -56,6 +56,7 @@
         .geo-btn:hover { background:white; box-shadow:0 2px 8px rgba(74,75,80,0.12); }
         .geo-3d-card { position:absolute; cursor:grab; user-select:none; touch-action:none; transform-origin:top left; }
         .geo-3d-card:active { cursor:grabbing; }
+        .angle-card { position:absolute; user-select:none; touch-action:none; transform-origin:top left; border-radius:14px; box-shadow:0 4px 16px rgba(74,75,80,0.15); border:1px solid #d6d4d0; background:white; overflow:visible; }
         .geo-resize-handle { position:absolute; bottom:-4px; right:-4px; width:22px; height:22px; background:white; border:2px solid #8c8d92; border-radius:5px; cursor:nwse-resize; display:flex; align-items:center; justify-content:center; font-size:15px; color:#4a4b50; user-select:none; touch-action:none; z-index:10; font-weight:900; box-shadow:0 2px 6px rgba(0,0,0,0.15); }
         .math-grid-cell { transition: all 0.1s; }
         .math-grid-cell:hover { background-color: #f4f3ef; transform: scale(1.1); z-index: 10; font-weight: bold; border-radius: 4px; }
@@ -542,6 +543,20 @@
                     <button onclick="add3DCard('pyramid')"  class="geo-btn"><i class="fas fa-caret-up text-[#dec894] text-xl"></i>Pyramid</button>
                     <button onclick="add3DCard('cone')"     class="geo-btn"><i class="fas fa-caret-up text-[#938db3] text-xl"></i>Kon</button>
                 </div>
+
+                <hr class="border-soft-border my-1"/>
+
+                <!-- Angle tool -->
+                <h3 class="font-bold text-xs uppercase tracking-wider text-soft-muted">Vinklar</h3>
+                <button onclick="addAngleTool()" class="geo-btn w-full">
+                    <svg viewBox="0 0 40 40" width="28" height="28">
+                        <line x1="4" y1="34" x2="36" y2="34" stroke="#4f7c75" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="4" y1="34" x2="20" y2="18" stroke="#a85c72" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M 14,34 A 10,10,0,0,0,11.1,26.9" fill="none" stroke="#5b80a5" stroke-width="2"/>
+                        <circle cx="4" cy="34" r="2.5" fill="#4a4b50"/>
+                    </svg>
+                    Vinkel
+                </button>
 
                 <hr class="border-soft-border my-1"/>
 
@@ -1832,6 +1847,249 @@
     }
 
     // updateTransform now handles scale natively via window.updateTransform
+
+    // --- Angle tool ---
+    function addAngleTool() {
+        const ws = document.getElementById('workspace-geometry');
+        const cardW = 260, cardTotalH = 258;
+        const headerH = 28, svgH = 170;
+        const x = ws.clientWidth / 2 - cardW / 2 + (Math.random() * 60 - 30);
+        const y = Math.max(10, ws.clientHeight - cardTotalH - 20 + (Math.random() * 30 - 15));
+
+        const card = document.createElement('div');
+        card.className = 'angle-card';
+        card.style.cssText = `width:${cardW}px;height:${cardTotalH}px;left:0;top:0;position:absolute;transform-origin:top left;`;
+        card.dataset.x = x; card.dataset.y = y; card.dataset.rot = 0; card.dataset.scale = 1;
+        let angleDeg = 45;
+
+        // Header
+        const header = document.createElement('div');
+        header.style.cssText = `width:100%;height:${headerH}px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#6a6b70;user-select:none;cursor:move;background:rgba(91,128,165,0.12);border-bottom:1px solid #d6d4d0;border-radius:14px 14px 0 0;box-sizing:border-box;`;
+        header.textContent = '⠿ Vinkel';
+        card.appendChild(header);
+
+        // SVG canvas
+        const svgNS = 'http://www.w3.org/2000/svg';
+        const svg = document.createElementNS(svgNS, 'svg');
+        svg.setAttribute('width', cardW);
+        svg.setAttribute('height', svgH);
+        svg.setAttribute('viewBox', '-10 0 270 170');
+        svg.style.cssText = 'display:block;overflow:visible;';
+        card.appendChild(svg);
+
+        // SVG constants
+        const vx = 115, vy = 155;   // vertex position
+        const rayLen = 120;          // movable ray length
+        const fixedLen = 128;        // fixed ray length (goes right)
+        const arcR = 40;             // arc radius
+        const sq = 15;               // right-angle square size
+
+        // Fixed ray (horizontal)
+        const fixedRay = document.createElementNS(svgNS, 'line');
+        fixedRay.setAttribute('x1', vx); fixedRay.setAttribute('y1', vy);
+        fixedRay.setAttribute('x2', vx + fixedLen); fixedRay.setAttribute('y2', vy);
+        fixedRay.setAttribute('stroke', '#4f7c75'); fixedRay.setAttribute('stroke-width', '3');
+        fixedRay.setAttribute('stroke-linecap', 'round');
+        svg.appendChild(fixedRay);
+
+        // Vertex dot
+        const vertexDot = document.createElementNS(svgNS, 'circle');
+        vertexDot.setAttribute('cx', vx); vertexDot.setAttribute('cy', vy);
+        vertexDot.setAttribute('r', '4'); vertexDot.setAttribute('fill', '#4a4b50');
+        svg.appendChild(vertexDot);
+
+        // Arc / right-angle symbol
+        const arcPath = document.createElementNS(svgNS, 'path');
+        arcPath.setAttribute('fill', 'none');
+        arcPath.setAttribute('stroke', '#5b80a5');
+        arcPath.setAttribute('stroke-width', '2.5');
+        arcPath.setAttribute('stroke-linecap', 'round');
+        svg.appendChild(arcPath);
+
+        // Movable ray
+        const movableRay = document.createElementNS(svgNS, 'line');
+        movableRay.setAttribute('stroke', '#a85c72'); movableRay.setAttribute('stroke-width', '3');
+        movableRay.setAttribute('stroke-linecap', 'round');
+        svg.appendChild(movableRay);
+
+        // Degree label near arc
+        const degLabel = document.createElementNS(svgNS, 'text');
+        degLabel.setAttribute('text-anchor', 'middle');
+        degLabel.setAttribute('fill', '#5b80a5');
+        degLabel.setAttribute('font-size', '13');
+        degLabel.setAttribute('font-weight', '700');
+        degLabel.setAttribute('font-family', 'Nunito, sans-serif');
+        degLabel.setAttribute('pointer-events', 'none');
+        svg.appendChild(degLabel);
+
+        // Draggable handle at movable ray tip
+        const handle = document.createElementNS(svgNS, 'circle');
+        handle.setAttribute('r', '10');
+        handle.setAttribute('fill', '#a85c72');
+        handle.setAttribute('fill-opacity', '0.2');
+        handle.setAttribute('stroke', '#a85c72');
+        handle.setAttribute('stroke-width', '2');
+        handle.style.cursor = 'grab';
+        svg.appendChild(handle);
+
+        // UI area (input + category)
+        const uiArea = document.createElement('div');
+        uiArea.style.cssText = 'padding:8px 12px;display:flex;flex-direction:column;gap:5px;background:white;border-top:1px solid #f0f0ee;border-radius:0 0 14px 14px;';
+        uiArea.addEventListener('pointerdown', (e) => e.stopPropagation());
+        card.appendChild(uiArea);
+
+        const inputRow = document.createElement('div');
+        inputRow.style.cssText = 'display:flex;align-items:center;gap:8px;';
+
+        const inputLabel = document.createElement('label');
+        inputLabel.textContent = 'Grader:';
+        inputLabel.style.cssText = 'font-size:12px;font-weight:700;color:#4a4b50;white-space:nowrap;';
+
+        const inputField = document.createElement('input');
+        inputField.type = 'number';
+        inputField.min = '1'; inputField.max = '179'; inputField.step = '1';
+        inputField.style.cssText = 'width:56px;border:1.5px solid #d6d4d0;border-radius:8px;padding:3px 6px;font-size:13px;font-weight:700;color:#4a4b50;text-align:center;outline:none;font-family:Nunito,sans-serif;';
+
+        const degSign = document.createElement('span');
+        degSign.textContent = '°';
+        degSign.style.cssText = 'font-size:13px;font-weight:700;color:#4a4b50;';
+
+        inputRow.appendChild(inputLabel);
+        inputRow.appendChild(inputField);
+        inputRow.appendChild(degSign);
+        uiArea.appendChild(inputRow);
+
+        const catLabel = document.createElement('div');
+        catLabel.style.cssText = 'font-size:12px;font-weight:700;text-align:center;padding:3px 8px;border-radius:8px;';
+        uiArea.appendChild(catLabel);
+
+        // Snap-to-common-angles
+        const SNAP_ANGLES = [30, 45, 60, 90, 120, 135, 150];
+        const SNAP_THRESH = 4;
+        function snapAngle(deg) {
+            for (const s of SNAP_ANGLES) {
+                if (Math.abs(deg - s) <= SNAP_THRESH) return s;
+            }
+            return Math.round(deg);
+        }
+
+        function getCategory(deg) {
+            if (deg === 90) return { text: 'Rät vinkel ∟', color: '#4f7c75', bg: 'rgba(139,179,156,0.22)' };
+            if (deg < 90)  return { text: 'Spetsig vinkel', color: '#5b80a5', bg: 'rgba(141,177,209,0.22)' };
+            return { text: 'Trubbig vinkel', color: '#a85c72', bg: 'rgba(213,139,153,0.22)' };
+        }
+
+        function updateAngleTool(deg, skipInput) {
+            deg = Math.max(1, Math.min(179, Math.round(deg)));
+            angleDeg = deg;
+            const rad = deg * Math.PI / 180;
+            const ex = vx + rayLen * Math.cos(rad);
+            const ey = vy - rayLen * Math.sin(rad);
+
+            // Movable ray
+            movableRay.setAttribute('x1', vx); movableRay.setAttribute('y1', vy);
+            movableRay.setAttribute('x2', ex);  movableRay.setAttribute('y2', ey);
+
+            // Handle
+            handle.setAttribute('cx', ex); handle.setAttribute('cy', ey);
+
+            // Arc or right-angle square
+            if (deg === 90) {
+                arcPath.setAttribute('d', `M ${vx+sq},${vy} L ${vx+sq},${vy-sq} L ${vx},${vy-sq}`);
+            } else {
+                const bx = vx + arcR * Math.cos(rad);
+                const by = vy - arcR * Math.sin(rad);
+                arcPath.setAttribute('d', `M ${vx+arcR},${vy} A ${arcR},${arcR},0,0,0,${bx.toFixed(2)},${by.toFixed(2)}`);
+            }
+
+            // Degree label midway along arc
+            const halfRad = (deg / 2) * Math.PI / 180;
+            const lr = arcR + 18;
+            degLabel.setAttribute('x', (vx + lr * Math.cos(halfRad)).toFixed(2));
+            degLabel.setAttribute('y', (vy - lr * Math.sin(halfRad) + 5).toFixed(2));
+            degLabel.textContent = deg + '\u00b0';
+
+            // Category
+            const cat = getCategory(deg);
+            catLabel.textContent = cat.text;
+            catLabel.style.color = cat.color;
+            catLabel.style.background = cat.bg;
+
+            if (!skipInput) inputField.value = deg;
+        }
+
+        // Input field handlers
+        inputField.addEventListener('input', () => {
+            const v = parseInt(inputField.value, 10);
+            if (!isNaN(v) && v >= 1 && v <= 179) updateAngleTool(v, true);
+        });
+        inputField.addEventListener('blur', () => {
+            let v = parseInt(inputField.value, 10);
+            if (isNaN(v) || v < 1) v = 1;
+            if (v > 179) v = 179;
+            updateAngleTool(v, false);
+            inputField.style.borderColor = '#d6d4d0';
+        });
+        inputField.addEventListener('focus', () => { inputField.style.borderColor = '#5b80a5'; });
+
+        // Handle drag for movable ray
+        handle.addEventListener('pointerdown', (e) => {
+            if (e.button !== 0) return;
+            e.preventDefault(); e.stopPropagation();
+            handle.setPointerCapture(e.pointerId);
+            handle.style.cursor = 'grabbing';
+            function onMove(ev) {
+                const rect = svg.getBoundingClientRect();
+                // viewBox: x from -10, width 270, height 170
+                const mx = (ev.clientX - rect.left) / rect.width * 270 - 10;
+                const my = (ev.clientY - rect.top)  / rect.height * 170;
+                const dx = mx - vx;
+                const dy = vy - my; // invert y (SVG y-axis goes down)
+                let deg = Math.atan2(dy, dx) * 180 / Math.PI;
+                deg = Math.max(1, Math.min(179, deg));
+                deg = snapAngle(deg);
+                updateAngleTool(deg);
+            }
+            function onUp(ev) {
+                handle.releasePointerCapture(ev.pointerId);
+                handle.style.cursor = 'grab';
+                document.removeEventListener('pointermove', onMove);
+                document.removeEventListener('pointerup', onUp);
+            }
+            document.addEventListener('pointermove', onMove);
+            document.addEventListener('pointerup', onUp);
+        });
+
+        // Resize handle
+        const rh = document.createElement('div');
+        rh.className = 'geo-resize-handle';
+        rh.textContent = '⌟';
+        let rhStart, rhScale, rhPid;
+        rh.addEventListener('pointerdown', (e) => {
+            if (e.button !== 0) return;
+            e.preventDefault(); e.stopPropagation();
+            rhPid = e.pointerId;
+            rhStart = e.clientX; rhScale = parseFloat(card.dataset.scale) || 1;
+            function onMove(ev) {
+                if (ev.pointerId !== rhPid) return;
+                const ns = Math.max(0.4, Math.min(4, rhScale + (ev.clientX - rhStart) / cardW));
+                card.dataset.scale = ns;
+                window.updateTransform(card);
+            }
+            function onUp(ev) {
+                if (ev.pointerId !== rhPid) return;
+                document.removeEventListener('pointermove', onMove);
+                document.removeEventListener('pointerup', onUp);
+            }
+            document.addEventListener('pointermove', onMove);
+            document.addEventListener('pointerup', onUp);
+        });
+        card.appendChild(rh);
+
+        ws.appendChild(card);
+        makeDraggable(card, 'workspace-geometry');
+        updateAngleTool(angleDeg);
+    }
 
     // --- 3D cards (independent mini Three.js scenes) ---
     function add3DCard(type) {
