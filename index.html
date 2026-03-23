@@ -80,6 +80,16 @@
         .line-dot:hover { r: 8; }
         .drag-handle-bar { position: absolute; top: 0; left: 0; right: 0; height: 100%; cursor: ns-resize; }
 
+        /* ── Centimeter grid background for Geometry and Positionssystem workspaces ── */
+        /* Replaces the default dot pattern with a 1 cm × 1 cm graph-paper grid.      */
+        /* The SVG pattern is applied via CSS background-image so it sits below all    */
+        /* interactive elements and never captures pointer events.                      */
+        #workspace-geometry,
+        #workspace-positionssystem {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cpath d='M 40 0 L 0 0 0 40' fill='none' stroke='%23b8d4f0' stroke-width='0.8'/%3E%3C/svg%3E");
+            background-size: 40px 40px;
+        }
+
         /* ── Positionssystem – column headers & dividers ── */
         .pos-col-header { position:absolute; top:0; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; height:40px; pointer-events:none; z-index:5; box-sizing:border-box; border-bottom-width:2px; border-bottom-style:solid; }
         .pos-col-divider { position:absolute; top:0; bottom:0; width:1px; pointer-events:none; z-index:4; }
