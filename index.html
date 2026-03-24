@@ -1274,7 +1274,7 @@
         clock:      { onEnter: initClockDragIfNeeded },
         koordinat:  { onEnter: renderKoord,            onResize: renderKoord },
         volym:      { onEnter: updateVolumeUI },
-        decimaltal: { onEnter: initDecimaltal,         onResize: () => { decPositionTokens(false); decRenderNL(); } },
+        decimaltal: { onEnter: decOnEnter,         onResize: () => { decPositionTokens(false); decRenderNL(); } },
     };
 
     /**
@@ -3978,6 +3978,7 @@
     let decZoomRange   = [0, 10];      // number line visible range [start, end]
     let decTableDragX  = null;
     let decTableDragShift = 0;
+    let decTableReady  = false;        // guard against duplicate event-listener registration
 
     /** Build the static column structure of the place value table. */
     function decBuildTable() {
@@ -4013,11 +4014,14 @@
             table.insertBefore(colDiv, document.getElementById('dec-tokens-layer'));
         });
 
-        // Wire up drag-to-shift on the table
-        table.addEventListener('pointerdown', decOnTableDragStart, { passive: false });
-        table.addEventListener('pointermove', decOnTableDragMove, { passive: false });
-        table.addEventListener('pointerup',   decOnTableDragEnd);
-        table.addEventListener('pointercancel', decOnTableDragEnd);
+        // Wire up drag-to-shift on the table (only once)
+        if (!decTableReady) {
+            table.addEventListener('pointerdown', decOnTableDragStart, { passive: false });
+            table.addEventListener('pointermove', decOnTableDragMove, { passive: false });
+            table.addEventListener('pointerup',   decOnTableDragEnd);
+            table.addEventListener('pointercancel', decOnTableDragEnd);
+            decTableReady = true;
+        }
     }
 
     /** Parse a user-typed decimal string into an array of {pos, val} digit objects. */
@@ -4156,7 +4160,8 @@
     function decOnTableDragMove(e) {
         if (decTableDragX === null) return;
         const table  = document.getElementById('dec-table');
-        const colW   = table ? Math.max(48, table.offsetWidth / 8) : 80;
+        // 7 cols + 1 separator = 8 layout units; use as column-width approximation
+        const colW   = table ? Math.max(48, table.offsetWidth / (DEC_COL_DEFS.length + 1)) : 80;
         const dx     = e.clientX - decTableDragX;
         // Right drag → divide (−), left drag → multiply (+)
         const newShift = -Math.round(dx / colW);
@@ -4473,8 +4478,9 @@
             parseFloat((s - range * 4.5).toFixed(6)),
             parseFloat((e + range * 4.5).toFixed(6))
         ];
-        // Clamp to a reasonable range
-        if (decZoomRange[1] - decZoomRange[0] > 10000) decZoomRange = [0, 10];
+        // Clamp to a sane maximum range (avoid infinitely small tick labels)
+        const MAX_ZOOM_RANGE = 10000;
+        if (decZoomRange[1] - decZoomRange[0] > MAX_ZOOM_RANGE) decZoomRange = [0, 10];
         decRenderNL();
     }
 
@@ -4551,6 +4557,14 @@
         decUpdateValueDisplay();
         // Activate default tool
         decSetTool('blocks');
+    }
+
+    /** Lightweight re-entry: re-position tokens and refresh active tool (no DOM rebuild). */
+    function decOnEnter() {
+        decPositionTokens(false);
+        decRenderBlocks();
+        if (decTool === 'numberline') decRenderNL();
+        if (decTool === 'equality')   decRenderEquality();
     }
 
     window.onload = initApp;
