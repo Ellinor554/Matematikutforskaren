@@ -271,6 +271,67 @@
         .vol-add-btn:active {
             transform: scale(0.97);
         }
+
+        /* ═══════════════════════════════════════════════
+           Decimaltal – Decimal Numbers Visualisation
+           ═══════════════════════════════════════════════ */
+        #workspace-decimaltal {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cpath d='M 40 0 L 0 0 0 40' fill='none' stroke='%23b8d4f0' stroke-width='0.8'/%3E%3C/svg%3E");
+            background-size: 40px 40px;
+        }
+
+        /* Place value table */
+        .dec-table { display:flex; align-items:stretch; height:176px; border-bottom:2px solid #d6d4d0; flex-shrink:0; position:relative; }
+        .dec-col { flex:1; display:flex; flex-direction:column; border-right:1px solid rgba(170,185,210,0.5); min-width:0; }
+        .dec-col:last-child { border-right:none; }
+        .dec-col-head { border-bottom:2px solid; text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; padding:4px 2px; min-height:52px; flex-shrink:0; }
+        .dec-col-head .cab { font-size:16px; font-weight:900; line-height:1; }
+        .dec-col-head .cnm { font-size:8px; font-weight:700; opacity:0.8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+        .dec-col-body { flex:1; display:flex; align-items:center; justify-content:center; padding:4px; overflow:visible; }
+        .dec-sep { width:22px; flex-shrink:0; background:rgba(74,75,80,0.07); border-left:4px solid #4a4b50; border-right:4px solid #4a4b50; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:18px; position:relative; z-index:6; }
+        .dec-dot { width:14px; height:14px; border-radius:50%; background:#4a4b50; box-shadow:0 0 0 5px rgba(74,75,80,0.12); }
+
+        /* Digit tokens (absolute layer over table) */
+        #dec-tokens-layer { position:absolute; top:0; left:0; right:0; bottom:0; pointer-events:none; overflow:visible; z-index:20; }
+        .dec-token { position:absolute; display:inline-flex; align-items:center; justify-content:center; width:50px; height:50px; border-radius:12px; font-size:28px; font-weight:900; border:3px solid; box-shadow:0 4px 14px rgba(0,0,0,0.12); pointer-events:auto; touch-action:none; flex-shrink:0; }
+        .dec-token-ghost { opacity:0.18; }
+
+        /* Operations bar */
+        .dec-ops-bar { display:flex; gap:8px; padding:10px 16px; background:#fff; border-bottom:1px solid #d6d4d0; flex-wrap:wrap; align-items:center; flex-shrink:0; }
+        .dec-op-btn { padding:7px 16px; border-radius:10px; font-weight:800; font-size:13px; cursor:pointer; border:2px solid; transition:all 0.14s; font-family:'Nunito',sans-serif; white-space:nowrap; }
+        .dec-op-btn:hover { opacity:0.82; transform:scale(1.04); }
+
+        /* Tool tabs */
+        .dec-tabs { display:flex; gap:4px; padding:8px 12px 0; border-bottom:1px solid #d6d4d0; background:#f9f8f6; flex-shrink:0; }
+        .dec-tab { padding:5px 14px; border-radius:7px 7px 0 0; font-weight:700; font-size:12px; cursor:pointer; background:transparent; border:1px solid transparent; border-bottom:none; color:#8c8d92; transition:all 0.14s; }
+        .dec-tab.active { background:#fff; color:#5b80a5; border-color:#d6d4d0; border-bottom-color:#fff; }
+        .dec-tab-panel { display:none; flex:1; overflow:auto; padding:16px; }
+        .dec-tab-panel.active { display:flex; flex-direction:column; gap:12px; }
+
+        /* Blocks tool */
+        .dec-blk-row { display:flex; flex-wrap:wrap; gap:4px; align-items:flex-end; }
+        .dec-blk-one { width:40px; height:40px; border-radius:5px; border:2px solid; display:inline-block; position:relative; }
+        .dec-blk-ten-strip { display:flex; flex-direction:column; gap:0; }
+        .dec-blk-ten-strip span { display:block; width:40px; height:4px; border-left:1px solid; border-right:1px solid; }
+        .dec-blk-ten-strip span:first-child { border-top:1px solid; border-radius:2px 2px 0 0; }
+        .dec-blk-ten-strip span:last-child { border-bottom:1px solid; border-radius:0 0 2px 2px; }
+        .dec-blk-tenth { width:40px; height:4px; border-radius:2px; border:1px solid; display:inline-block; }
+        .dec-blk-hundredth { width:4px; height:4px; border-radius:1px; border:1px solid; display:inline-block; }
+        .dec-blk-enter { animation: decBlkAppear 0.3s ease; }
+        @keyframes decBlkAppear { from { transform:scale(0); opacity:0; } to { transform:scale(1); opacity:1; } }
+
+        /* Number line */
+        #dec-nl-svg { cursor:pointer; }
+        .dec-nl-segment:hover { opacity:0.5; }
+
+        /* Equality canvas */
+        .dec-eq-col { display:flex; flex-direction:column; align-items:center; gap:8px; }
+        .dec-eq-input { width:120px; border:2px solid #d6d4d0; border-radius:10px; padding:6px 8px; font-family:'Nunito',sans-serif; font-size:20px; font-weight:800; text-align:center; color:#4a4b50; outline:none; }
+        .dec-eq-input:focus { border-color:#5b80a5; }
+        .dec-eq-bar-outer { width:120px; height:240px; border:2px solid #d6d4d0; border-radius:4px; overflow:hidden; position:relative; background:#f4f3ef; }
+        .dec-eq-bar-fill { position:absolute; bottom:0; left:0; right:0; transition:height 0.55s cubic-bezier(0.34,1.56,0.64,1); }
+        .dec-eq-gridlines { position:absolute; top:0; left:0; right:0; bottom:0; pointer-events:none; }
+        .dec-eq-label { font-size:13px; font-weight:700; color:#4a4b50; text-align:center; }
     </style>
 </head>
 <body class="text-soft-text flex flex-col h-screen">
@@ -336,6 +397,11 @@
                         <div class="w-20 h-20 rounded-full bg-soft-blueLight/30 text-soft-blue flex items-center justify-center text-3xl group-hover:scale-110 transition-transform"><i class="fas fa-fill-drip"></i></div>
                         <h3 class="text-xl font-bold text-soft-text">Volym</h3>
                         <p class="text-soft-muted text-center text-sm">Visualisera volymer och enhetsomvandlingar med Liter, Deciliter, Centiliter och Milliliter.</p>
+                    </button>
+                    <button onclick="switchView('decimaltal')" class="bg-soft-surface p-8 rounded-2xl shadow-sm hover:shadow-md border border-soft-border flex flex-col items-center justify-center gap-4 transition-all hover:-translate-y-1 group">
+                        <div class="w-20 h-20 rounded-full bg-soft-tealLight/30 text-soft-teal flex items-center justify-center text-3xl group-hover:scale-110 transition-transform"><i class="fas fa-arrows-left-right"></i></div>
+                        <h3 class="text-xl font-bold text-soft-text">Decimaltal</h3>
+                        <p class="text-soft-muted text-center text-sm">Utforska positionsvärde och flytta siffror vid multiplikation och division med 10.</p>
                     </button>
                 </div>
             </div>
@@ -1048,6 +1114,127 @@
             <div class="flex-1 workspace" id="workspace-positionssystem"></div>
         </section>
 
+        <!-- DECIMALTAL VIEW -->
+        <section id="view-decimaltal" class="view-section flex-row h-full">
+            <!-- Floating panel (visible only in presentation / fullscreen mode) -->
+            <div id="decimaltal-float-panel" class="view-float-panel">
+                <button onclick="toggleViewSidebar('decimaltal')" aria-expanded="false" class="view-float-btn bg-white border border-soft-border rounded-xl px-3 py-2 text-sm font-bold text-soft-teal flex items-center gap-2 shadow-lg hover:bg-soft-tealLight/10 transition-colors" title="Visa/dölj kontroller">
+                    <i class="fas fa-sliders-h text-base"></i><span id="decimaltal-ctrl-lbl">Kontroller</span>
+                </button>
+                <button onclick="toggleViewFullscreen()" class="view-float-btn bg-white border border-soft-border rounded-xl px-3 py-2 text-sm font-bold text-soft-text flex items-center gap-2 shadow-lg hover:bg-soft-bg transition-colors" title="Avsluta helskärm">
+                    <i class="fas fa-compress text-base"></i> Avsluta
+                </button>
+            </div>
+
+            <!-- Sidebar -->
+            <div id="decimaltal-sidebar" data-view-panel="side" class="w-64 bg-soft-surface shadow-md z-10 p-5 flex flex-col gap-4 overflow-y-auto border-r border-soft-border shrink-0">
+                <h3 class="font-bold text-soft-text text-sm uppercase tracking-wider text-soft-muted">Skriv ett tal</h3>
+                <div class="flex gap-2">
+                    <input id="dec-input" type="text" placeholder="t.ex. 0,14" inputmode="decimal"
+                        class="flex-1 border-2 border-soft-border rounded-xl px-3 py-2 font-bold text-soft-text text-lg focus:outline-none focus:border-soft-teal"
+                        oninput="decHandleInput()" onkeydown="if(event.key==='Enter')decHandleInput()"/>
+                </div>
+
+                <hr class="border-soft-border"/>
+
+                <div>
+                    <h4 class="font-bold text-xs uppercase tracking-wider text-soft-muted mb-3">Flytta siffror</h4>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="decShift(1)" class="dec-op-btn" style="background:rgba(91,128,165,0.12);border-color:#5b80a5;color:#5b80a5;">× 10</button>
+                        <button onclick="decShift(2)" class="dec-op-btn" style="background:rgba(91,128,165,0.12);border-color:#5b80a5;color:#5b80a5;">× 100</button>
+                        <button onclick="decShift(-1)" class="dec-op-btn" style="background:rgba(168,92,114,0.12);border-color:#a85c72;color:#a85c72;">÷ 10</button>
+                        <button onclick="decShift(-2)" class="dec-op-btn" style="background:rgba(168,92,114,0.12);border-color:#a85c72;color:#a85c72;">÷ 100</button>
+                    </div>
+                    <p class="text-xs text-soft-muted mt-2"><i class="fas fa-hand-point-left mr-1"></i>Dra i tabellen vänster/höger för manuell förflyttning.</p>
+                </div>
+
+                <hr class="border-soft-border"/>
+
+                <div class="bg-soft-tealLight/15 border border-soft-tealLight/30 rounded-xl p-3">
+                    <div class="text-xs font-bold text-soft-muted uppercase tracking-wider mb-1">Nuvarande värde</div>
+                    <div class="text-2xl font-extrabold text-soft-teal" id="dec-value-display">—</div>
+                    <div id="dec-range-warning" class="hidden mt-1 text-xs text-soft-pink font-semibold"><i class="fas fa-exclamation-triangle mr-1"></i>Tal utanför tabellen</div>
+                </div>
+
+                <hr class="border-soft-border"/>
+
+                <div>
+                    <h4 class="font-bold text-xs uppercase tracking-wider text-soft-muted mb-3">Verktyg</h4>
+                    <div class="flex flex-col gap-2">
+                        <button onclick="decSetTool('blocks')" id="dec-tool-btn-blocks"
+                            class="flex items-center gap-2 px-3 py-2 rounded-xl border font-bold text-sm transition-all bg-soft-teal/10 border-soft-teal text-soft-teal">
+                            <i class="fas fa-cubes text-sm"></i> Basmaterial
+                        </button>
+                        <button onclick="decSetTool('numberline')" id="dec-tool-btn-numberline"
+                            class="flex items-center gap-2 px-3 py-2 rounded-xl border font-bold text-sm transition-all bg-soft-bg border-soft-border text-soft-muted">
+                            <i class="fas fa-ruler-horizontal text-sm"></i> Tallinje (zoom)
+                        </button>
+                        <button onclick="decSetTool('equality')" id="dec-tool-btn-equality"
+                            class="flex items-center gap-2 px-3 py-2 rounded-xl border font-bold text-sm transition-all bg-soft-bg border-soft-border text-soft-muted">
+                            <i class="fas fa-equals text-sm"></i> Jämförelseyta
+                        </button>
+                    </div>
+                </div>
+
+                <hr class="border-soft-border"/>
+                <button onclick="decReset()" class="bg-soft-text hover:bg-soft-muted text-white p-2 rounded-lg text-sm font-semibold mt-auto"><i class="fas fa-trash mr-1"></i> Rensa</button>
+            </div>
+
+            <!-- Main workspace -->
+            <div id="workspace-decimaltal" class="flex-1 flex flex-col overflow-hidden">
+
+                <!-- Place value table -->
+                <div id="dec-table" class="dec-table" title="Dra vänster/höger för att flytta siffror">
+                    <!-- Columns rendered by JS into #dec-col-tusental … #dec-col-tusendelar -->
+                    <!-- Decimal separator rendered by JS -->
+                    <!-- Token overlay -->
+                    <div id="dec-tokens-layer"></div>
+                </div>
+
+                <!-- Tab: Blocks -->
+                <div id="dec-panel-blocks" class="dec-tab-panel active flex-1 overflow-auto">
+                    <h4 class="font-bold text-soft-muted text-xs uppercase tracking-wider">Basmaterial – konkret representation</h4>
+                    <div id="dec-blocks-area" class="flex flex-wrap gap-6 items-start pt-2"></div>
+                    <div id="dec-blocks-actions" class="flex gap-3 flex-wrap"></div>
+                </div>
+
+                <!-- Tab: Number line -->
+                <div id="dec-panel-numberline" class="dec-tab-panel flex-1 overflow-auto">
+                    <div class="flex items-center gap-4 mb-2 flex-wrap">
+                        <h4 class="font-bold text-soft-muted text-xs uppercase tracking-wider">Tallinje – klicka för att zooma in</h4>
+                        <button onclick="decNlZoomOut()" class="px-3 py-1 bg-soft-blueLight/20 text-soft-blue font-bold rounded-lg text-xs hover:bg-soft-blueLight/40"><i class="fas fa-search-minus mr-1"></i>Zooma ut</button>
+                        <span id="dec-nl-range-label" class="text-xs font-semibold text-soft-muted"></span>
+                    </div>
+                    <svg id="dec-nl-svg" width="100%" height="120"></svg>
+                </div>
+
+                <!-- Tab: Equality canvas -->
+                <div id="dec-panel-equality" class="dec-tab-panel flex-1 overflow-auto">
+                    <h4 class="font-bold text-soft-muted text-xs uppercase tracking-wider mb-3">Jämförelseyta – skriv två tal och se hur de förhåller sig</h4>
+                    <div class="flex gap-8 items-end flex-wrap">
+                        <div class="dec-eq-col">
+                            <input id="dec-eq-in1" class="dec-eq-input" type="text" placeholder="0,5" oninput="decRenderEquality()"/>
+                            <div class="dec-eq-bar-outer" id="dec-eq-bar1">
+                                <div class="dec-eq-bar-fill" id="dec-eq-fill1"></div>
+                                <svg class="dec-eq-gridlines" id="dec-eq-grid1"></svg>
+                            </div>
+                            <div class="dec-eq-label" id="dec-eq-lbl1">—</div>
+                        </div>
+                        <div class="dec-eq-col">
+                            <input id="dec-eq-in2" class="dec-eq-input" type="text" placeholder="0,50" oninput="decRenderEquality()"/>
+                            <div class="dec-eq-bar-outer" id="dec-eq-bar2">
+                                <div class="dec-eq-bar-fill" id="dec-eq-fill2"></div>
+                                <svg class="dec-eq-gridlines" id="dec-eq-grid2"></svg>
+                            </div>
+                            <div class="dec-eq-label" id="dec-eq-lbl2">—</div>
+                        </div>
+                        <div id="dec-eq-comparison" class="text-lg font-extrabold text-soft-teal self-center hidden"></div>
+                    </div>
+                </div>
+
+            </div><!-- /workspace-decimaltal -->
+        </section>
+
     </main>
 
     <script>
@@ -1074,6 +1261,7 @@
         initStats();
         initKoord();
         initPosSystem();
+        initDecimaltal();
     }
 
     /**
@@ -1086,6 +1274,7 @@
         clock:      { onEnter: initClockDragIfNeeded },
         koordinat:  { onEnter: renderKoord,            onResize: renderKoord },
         volym:      { onEnter: updateVolumeUI },
+        decimaltal: { onEnter: initDecimaltal,         onResize: () => { decPositionTokens(false); decRenderNL(); } },
     };
 
     /**
@@ -1111,7 +1300,7 @@
             cleanup3D();
         } else {
             btnHome.classList.remove('hidden');
-            const titles = {fractions:'Bråk',numberlines:'Tallinjer',geometry:'Geometriska objekt',counting:'Räkning',clock:'Klockan',statistics:'Statistik',koordinat:'Koordinatsystem',positionssystem:'Positionssystemet',volym:'Volym'};
+            const titles = {fractions:'Bråk',numberlines:'Tallinjer',geometry:'Geometriska objekt',counting:'Räkning',clock:'Klockan',statistics:'Statistik',koordinat:'Koordinatsystem',positionssystem:'Positionssystemet',volym:'Volym',decimaltal:'Decimaltal'};
             title.innerText = titles[viewId];
             // Run the view's onEnter hook if registered
             const onEnter = VIEW_REGISTRY[viewId]?.onEnter;
@@ -1126,7 +1315,8 @@
                 statistics: 'bg-soft-teal text-white',
                 koordinat: 'bg-soft-purple text-white',
                 positionssystem: 'bg-soft-blue text-white',
-                volym: 'bg-soft-blue text-white'
+                volym: 'bg-soft-blue text-white',
+                decimaltal: 'bg-soft-teal text-white'
             };
             const colorCls = fsBtnColors[viewId] || 'bg-soft-blue text-white';
             document.getElementById('controls-area').innerHTML =
@@ -3765,6 +3955,602 @@
             icon.classList.toggle('fa-chevron-down', isHidden);
         }
         if (btn) btn.setAttribute('aria-expanded', String(!isHidden));
+    }
+
+    // ===================== DECIMALTAL =====================
+    /**
+     * Column definitions for the place value table.
+     * pos: power of 10 (3=thousands, 0=ones, -1=tenths, etc.)
+     */
+    const DEC_COL_DEFS = [
+        { pos: 3,  key: 'tusental',    label: 'Tusental',    abbr: 'T',  color: '#1565C0', bg: 'rgba(30,136,229,0.09)',  border: '#1565C0' },
+        { pos: 2,  key: 'hundratal',   label: 'Hundratal',   abbr: 'H',  color: '#2E7D32', bg: 'rgba(56,142,60,0.09)',   border: '#2E7D32' },
+        { pos: 1,  key: 'tiotal',      label: 'Tiotal',      abbr: 'Ti', color: '#92700A', bg: 'rgba(249,168,37,0.11)',  border: '#92700A' },
+        { pos: 0,  key: 'ental',       label: 'Ental',       abbr: 'E',  color: '#C62828', bg: 'rgba(229,57,53,0.09)',   border: '#C62828' },
+        { pos: -1, key: 'tiondelar',   label: 'Tiondelar',   abbr: 'z',  color: '#6a1b9a', bg: 'rgba(106,27,154,0.09)', border: '#6a1b9a' },
+        { pos: -2, key: 'hundradelar', label: 'Hundradelar', abbr: 'h',  color: '#00695c', bg: 'rgba(0,105,92,0.09)',   border: '#00695c' },
+        { pos: -3, key: 'tusendelar',  label: 'Tusendelar',  abbr: 'm',  color: '#4527a0', bg: 'rgba(69,39,160,0.09)', border: '#4527a0' },
+    ];
+
+    let decDigits      = [];           // [{pos, val}, …]
+    let decBlocksState = {ones:0, tenths:0, hundredths:0};
+    let decTool        = 'blocks';
+    let decZoomRange   = [0, 10];      // number line visible range [start, end]
+    let decTableDragX  = null;
+    let decTableDragShift = 0;
+
+    /** Build the static column structure of the place value table. */
+    function decBuildTable() {
+        const table = document.getElementById('dec-table');
+        if (!table) return;
+        // Remove old columns/separator (keep the token layer)
+        Array.from(table.children).forEach(ch => { if (ch.id !== 'dec-tokens-layer') ch.remove(); });
+
+        DEC_COL_DEFS.forEach((col, i) => {
+            if (i === 4) {
+                // Decimal separator before tiondelar
+                const sep = document.createElement('div');
+                sep.className = 'dec-sep';
+                sep.innerHTML = '<div class="dec-dot"></div>';
+                table.insertBefore(sep, document.getElementById('dec-tokens-layer'));
+            }
+            const colDiv = document.createElement('div');
+            colDiv.className = 'dec-col';
+            colDiv.id = `dec-col-${col.key}`;
+            colDiv.style.cssText = `border-right-color:rgba(170,185,210,0.5);`;
+
+            const head = document.createElement('div');
+            head.className = 'dec-col-head';
+            head.style.cssText = `color:${col.color}; border-color:${col.color}; background:${col.bg};`;
+            head.innerHTML = `<span class="cab">${col.abbr}</span><span class="cnm">${col.label}</span>`;
+
+            const body = document.createElement('div');
+            body.className = 'dec-col-body';
+            body.id = `dec-body-${col.pos}`;
+
+            colDiv.appendChild(head);
+            colDiv.appendChild(body);
+            table.insertBefore(colDiv, document.getElementById('dec-tokens-layer'));
+        });
+
+        // Wire up drag-to-shift on the table
+        table.addEventListener('pointerdown', decOnTableDragStart, { passive: false });
+        table.addEventListener('pointermove', decOnTableDragMove, { passive: false });
+        table.addEventListener('pointerup',   decOnTableDragEnd);
+        table.addEventListener('pointercancel', decOnTableDragEnd);
+    }
+
+    /** Parse a user-typed decimal string into an array of {pos, val} digit objects. */
+    function decParseInput(str) {
+        str = (str || '').trim().replace(',', '.').replace(/\s/g, '');
+        if (!str || isNaN(parseFloat(str)) || !isFinite(parseFloat(str))) return [];
+        const absStr = str.startsWith('-') ? str.slice(1) : str;
+        const [intPart = '0', fracPart = ''] = absStr.split('.');
+        const result = [];
+        // Integer digits (right-to-left → ascending position)
+        for (let i = 0; i < intPart.length; i++) {
+            const pos = intPart.length - 1 - i;
+            if (pos > 3) continue;
+            const val = parseInt(intPart[i], 10);
+            if (!isNaN(val)) result.push({ pos, val });
+        }
+        // Fractional digits
+        for (let i = 0; i < fracPart.length && i < 3; i++) {
+            const val = parseInt(fracPart[i], 10);
+            if (!isNaN(val)) result.push({ pos: -(i + 1), val });
+        }
+        return result;
+    }
+
+    /** Get the current numeric value from decDigits. */
+    function decGetValue() {
+        return decDigits.reduce((s, d) => s + d.val * Math.pow(10, d.pos), 0);
+    }
+
+    /** Format a number for Swedish locale display. */
+    function decFmtSE(n, maxFrac) {
+        return n.toLocaleString('sv-SE', { maximumFractionDigits: maxFrac ?? 6, minimumFractionDigits: 0 });
+    }
+
+    /**
+     * Shift all digits left (positive steps = multiply by 10^steps)
+     * or right (negative steps = divide by 10^|steps|).
+     * Uses absolute-position transition for smooth sliding.
+     */
+    function decShift(steps) {
+        if (!steps || decDigits.length === 0) return;
+        decDigits = decDigits.map(d => ({ ...d, pos: d.pos + steps }));
+        decPositionTokens(true);
+        decSyncBlocksFromDigits();
+        decRenderBlocks();
+        decRenderNL();
+        decUpdateValueDisplay();
+    }
+
+    /** Position digit tokens over the correct column using CSS left transition. */
+    function decPositionTokens(animate) {
+        const layer = document.getElementById('dec-tokens-layer');
+        if (!layer) return;
+        const layerRect = layer.getBoundingClientRect();
+        if (!layerRect.width) return;
+
+        const TOKEN_SIZE = 50;
+        const table = document.getElementById('dec-table');
+        if (!table) return;
+        const headEl = table.querySelector('.dec-col-head');
+        const headH  = headEl ? headEl.offsetHeight : 52;
+        const tableH = table.offsetHeight;
+        const tokenTop = headH + Math.max(0, (tableH - headH - TOKEN_SIZE) / 2);
+
+        decDigits.forEach((digit, i) => {
+            const token = document.getElementById(`dec-token-${i}`);
+            if (!token) return;
+            const col = DEC_COL_DEFS.find(c => c.pos === digit.pos);
+
+            if (!col) {
+                // Out of visible range
+                if (animate) token.style.transition = 'left 0.5s cubic-bezier(0.34,1.56,0.64,1), opacity 0.35s';
+                else         token.style.transition = 'none';
+                token.style.opacity = '0.15';
+                token.style.left = (digit.pos > 3 ? layerRect.width - TOKEN_SIZE : 0) + 'px';
+            } else {
+                const colEl = document.getElementById(`dec-col-${col.key}`);
+                if (!colEl) return;
+                const colRect = colEl.getBoundingClientRect();
+                const centerX = colRect.left - layerRect.left + colRect.width / 2;
+                const newLeft = Math.round(centerX - TOKEN_SIZE / 2);
+
+                if (animate) token.style.transition = 'left 0.5s cubic-bezier(0.34,1.56,0.64,1), opacity 0.35s';
+                else         token.style.transition = 'none';
+                token.style.opacity = '1';
+                token.style.left = newLeft + 'px';
+                token.style.top  = tokenTop + 'px';
+                // Update colour for new column
+                token.style.background   = col.bg;
+                token.style.borderColor  = col.border;
+                token.style.color        = col.color;
+            }
+        });
+    }
+
+    /** (Re-)create all digit token DOM elements and position them without animation. */
+    function decRenderAll() {
+        const layer = document.getElementById('dec-tokens-layer');
+        if (!layer) return;
+        layer.querySelectorAll('.dec-token').forEach(t => t.remove());
+
+        decDigits.forEach((digit, i) => {
+            const col = DEC_COL_DEFS.find(c => c.pos === digit.pos);
+            const token = document.createElement('div');
+            token.id        = `dec-token-${i}`;
+            token.className = 'dec-token';
+            token.textContent = digit.val;
+            if (col) {
+                token.style.background  = col.bg;
+                token.style.borderColor = col.border;
+                token.style.color       = col.color;
+            }
+            token.style.transition = 'none';
+            layer.appendChild(token);
+        });
+        decPositionTokens(false);
+    }
+
+    /** Update the value display label and out-of-range warning. */
+    function decUpdateValueDisplay() {
+        const val = decGetValue();
+        const el  = document.getElementById('dec-value-display');
+        if (el) el.textContent = decDigits.length === 0 ? '—' : decFmtSE(val);
+        const warn = document.getElementById('dec-range-warning');
+        if (warn) warn.classList.toggle('hidden', !decDigits.some(d => d.pos < -3 || d.pos > 3));
+    }
+
+    // ── Table drag (manual shift) ─────────────────────────────────────────────
+    function decOnTableDragStart(e) {
+        if (e.button !== 0) return;
+        decTableDragX     = e.clientX;
+        decTableDragShift = 0;
+        this.setPointerCapture(e.pointerId);
+        e.preventDefault();
+    }
+    function decOnTableDragMove(e) {
+        if (decTableDragX === null) return;
+        const table  = document.getElementById('dec-table');
+        const colW   = table ? Math.max(48, table.offsetWidth / 8) : 80;
+        const dx     = e.clientX - decTableDragX;
+        // Right drag → divide (−), left drag → multiply (+)
+        const newShift = -Math.round(dx / colW);
+        if (newShift !== decTableDragShift) {
+            decShift(newShift - decTableDragShift);
+            decTableDragShift = newShift;
+        }
+    }
+    function decOnTableDragEnd() { decTableDragX = null; decTableDragShift = 0; }
+
+    // ── Input handler ─────────────────────────────────────────────────────────
+    function decHandleInput() {
+        const raw = document.getElementById('dec-input')?.value || '';
+        decDigits = decParseInput(raw);
+        decRenderAll();
+        decSyncBlocksFromDigits();
+        decRenderBlocks();
+        decRenderNL();
+        decUpdateValueDisplay();
+    }
+
+    // ── Tool selector ─────────────────────────────────────────────────────────
+    function decSetTool(tool) {
+        decTool = tool;
+        ['blocks', 'numberline', 'equality'].forEach(t => {
+            const panel = document.getElementById(`dec-panel-${t}`);
+            const btn   = document.getElementById(`dec-tool-btn-${t}`);
+            const active = (t === tool);
+            if (panel) panel.classList.toggle('active', active);
+            if (btn) {
+                if (active) {
+                    btn.style.cssText = 'background:rgba(61,138,138,0.15);border-color:#3d8a8a;color:#3d8a8a;';
+                } else {
+                    btn.style.cssText = '';
+                    btn.classList.add('bg-soft-bg', 'border-soft-border', 'text-soft-muted');
+                }
+            }
+        });
+        if (tool === 'numberline') decRenderNL();
+        if (tool === 'equality')   decRenderEquality();
+    }
+
+    // ── Reset ─────────────────────────────────────────────────────────────────
+    function decReset() {
+        decDigits      = [];
+        decBlocksState = {ones:0, tenths:0, hundredths:0};
+        decZoomRange   = [0, 10];
+        const inp = document.getElementById('dec-input');
+        if (inp) inp.value = '';
+        decRenderAll();
+        decRenderBlocks();
+        decRenderNL();
+        decRenderEquality();
+        decUpdateValueDisplay();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // BLOCKS TOOL
+    // ═══════════════════════════════════════════════════════════════════
+
+    function decSyncBlocksFromDigits() {
+        decBlocksState = {ones:0, tenths:0, hundredths:0};
+        decDigits.forEach(d => {
+            if (d.pos === 0)  decBlocksState.ones       = d.val;
+            if (d.pos === -1) decBlocksState.tenths     = d.val;
+            if (d.pos === -2) decBlocksState.hundredths = d.val;
+        });
+    }
+
+    function decSplitOne() {
+        if (decBlocksState.ones <= 0) return;
+        decBlocksState.ones--;
+        decBlocksState.tenths += 10;
+        decRenderBlocks(true);
+    }
+    function decMergeTenths() {
+        if (decBlocksState.tenths < 10) return;
+        decBlocksState.tenths -= 10;
+        decBlocksState.ones++;
+        decRenderBlocks(true);
+    }
+    function decSplitTenth() {
+        if (decBlocksState.tenths <= 0) return;
+        decBlocksState.tenths--;
+        decBlocksState.hundredths += 10;
+        decRenderBlocks(true);
+    }
+    function decMergeHundredths() {
+        if (decBlocksState.hundredths < 10) return;
+        decBlocksState.hundredths -= 10;
+        decBlocksState.tenths++;
+        decRenderBlocks(true);
+    }
+
+    function decRenderBlocks(newItems) {
+        const area    = document.getElementById('dec-blocks-area');
+        const actions = document.getElementById('dec-blocks-actions');
+        if (!area || !actions) return;
+        area.innerHTML    = '';
+        actions.innerHTML = '';
+
+        const colOnes   = DEC_COL_DEFS.find(c => c.pos ===  0);
+        const colTenths = DEC_COL_DEFS.find(c => c.pos === -1);
+        const colHths   = DEC_COL_DEFS.find(c => c.pos === -2);
+
+        function makeGroup(label, color, items) {
+            if (items.length === 0) return null;
+            const g = document.createElement('div');
+            g.className = 'flex flex-col gap-2';
+            const lbl = document.createElement('div');
+            lbl.className = 'text-xs font-bold uppercase tracking-wide';
+            lbl.style.color = color;
+            lbl.textContent = label;
+            g.appendChild(lbl);
+            const row = document.createElement('div');
+            row.className = 'dec-blk-row';
+            items.forEach(el => row.appendChild(el));
+            g.appendChild(row);
+            return g;
+        }
+
+        // Ones blocks (cubes)
+        const oneEls = Array.from({length: decBlocksState.ones}, (_, k) => {
+            const b = document.createElement('div');
+            b.className = 'dec-blk-one' + (newItems ? ' dec-blk-enter' : '');
+            b.style.cssText = `background:${colOnes?.bg||'#fff'}; border-color:${colOnes?.border||'#C62828'};`;
+            b.title = 'En ental (1)';
+            return b;
+        });
+        const gOnes = makeGroup(`Ental ×${decBlocksState.ones}`, colOnes?.color || '#C62828', oneEls);
+        if (gOnes) area.appendChild(gOnes);
+
+        // Tenths blocks (horizontal slices)
+        const tenthEls = Array.from({length: Math.min(decBlocksState.tenths, 30)}, (_, k) => {
+            const b = document.createElement('div');
+            b.className = 'dec-blk-tenth' + (newItems ? ' dec-blk-enter' : '');
+            b.style.cssText = `background:${colTenths?.bg||'#ede7f6'}; border-color:${colTenths?.border||'#6a1b9a'};`;
+            b.title = 'En tiondel (0,1)';
+            return b;
+        });
+        const gTenths = makeGroup(
+            `Tiondelar ×${decBlocksState.tenths}${decBlocksState.tenths > 30 ? ' (visar max 30)' : ''}`,
+            colTenths?.color || '#6a1b9a', tenthEls);
+        if (gTenths) area.appendChild(gTenths);
+
+        // Hundredths blocks (tiny squares)
+        const hthEls = Array.from({length: Math.min(decBlocksState.hundredths, 50)}, (_, k) => {
+            const b = document.createElement('div');
+            b.className = 'dec-blk-hundredth' + (newItems ? ' dec-blk-enter' : '');
+            b.style.cssText = `background:${colHths?.bg||'#e0f2f1'}; border-color:${colHths?.border||'#00695c'};`;
+            b.title = 'En hundradel (0,01)';
+            return b;
+        });
+        const gHths = makeGroup(
+            `Hundradelar ×${decBlocksState.hundredths}${decBlocksState.hundredths > 50 ? ' (visar max 50)' : ''}`,
+            colHths?.color || '#00695c', hthEls);
+        if (gHths) area.appendChild(gHths);
+
+        if (decBlocksState.ones === 0 && decBlocksState.tenths === 0 && decBlocksState.hundredths === 0) {
+            area.innerHTML = '<p class="text-soft-muted text-sm italic">Skriv ett decimaltal för att se basmaterialet.</p>';
+        }
+
+        // Split / Merge action buttons
+        const btnStyle = 'px-3 py-1.5 rounded-lg font-bold text-xs border-2 cursor-pointer transition-all hover:opacity-80 font-[Nunito]';
+        if (decBlocksState.ones > 0) {
+            const b = document.createElement('button');
+            b.className = btnStyle;
+            b.style.cssText = `background:${colOnes?.bg};border-color:${colOnes?.border};color:${colOnes?.color};`;
+            b.innerHTML = '<i class="fas fa-expand-arrows-alt mr-1"></i>Dela 1 ental → 10 tiondelar';
+            b.onclick = decSplitOne;
+            actions.appendChild(b);
+        }
+        if (decBlocksState.tenths >= 10) {
+            const b = document.createElement('button');
+            b.className = btnStyle;
+            b.style.cssText = `background:${colOnes?.bg};border-color:${colOnes?.border};color:${colOnes?.color};`;
+            b.innerHTML = '<i class="fas fa-compress-arrows-alt mr-1"></i>Slå ihop 10 tiondelar → 1 ental';
+            b.onclick = decMergeTenths;
+            actions.appendChild(b);
+        }
+        if (decBlocksState.tenths > 0) {
+            const b = document.createElement('button');
+            b.className = btnStyle;
+            b.style.cssText = `background:${colTenths?.bg};border-color:${colTenths?.border};color:${colTenths?.color};`;
+            b.innerHTML = '<i class="fas fa-expand-arrows-alt mr-1"></i>Dela 1 tiondel → 10 hundradelar';
+            b.onclick = decSplitTenth;
+            actions.appendChild(b);
+        }
+        if (decBlocksState.hundredths >= 10) {
+            const b = document.createElement('button');
+            b.className = btnStyle;
+            b.style.cssText = `background:${colTenths?.bg};border-color:${colTenths?.border};color:${colTenths?.color};`;
+            b.innerHTML = '<i class="fas fa-compress-arrows-alt mr-1"></i>Slå ihop 10 hundradelar → 1 tiondel';
+            b.onclick = decMergeHundredths;
+            actions.appendChild(b);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // NUMBER LINE TOOL (Micro-Zoom)
+    // ═══════════════════════════════════════════════════════════════════
+
+    function decRenderNL() {
+        const svgEl = document.getElementById('dec-nl-svg');
+        if (!svgEl || decTool !== 'numberline') return;
+
+        const parent = svgEl.parentElement;
+        const W = Math.max(300, parent ? parent.offsetWidth - 32 : 600);
+        const H = 120;
+        svgEl.setAttribute('viewBox', `0 0 ${W} ${H}`);
+        svgEl.setAttribute('width', W);
+        svgEl.setAttribute('height', H);
+        svgEl.innerHTML = '';
+
+        const [start, end] = decZoomRange;
+        const range  = end - start;
+        const pad    = 36;
+        const axisW  = W - 2 * pad;
+        const axisY  = 72;
+
+        // Helper: value → x pixel
+        const vx = v => pad + (v - start) / range * axisW;
+
+        // Background axis line
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', pad); line.setAttribute('y1', axisY);
+        line.setAttribute('x2', pad + axisW); line.setAttribute('y2', axisY);
+        line.setAttribute('stroke', '#d6d4d0'); line.setAttribute('stroke-width', '2');
+        svgEl.appendChild(line);
+
+        // Determine number of divisions: prefer 10 minor ticks per major
+        const numMajor = 10;
+        const step = range / numMajor;
+
+        // Draw segments (clickable for zoom)
+        for (let i = 0; i < numMajor; i++) {
+            const segStart = start + i * step;
+            const segEnd   = start + (i + 1) * step;
+            const x1 = vx(segStart);
+            const x2 = vx(segEnd);
+
+            const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            rect.setAttribute('x', x1 + 1); rect.setAttribute('y', axisY - 12);
+            rect.setAttribute('width', x2 - x1 - 2); rect.setAttribute('height', 24);
+            rect.setAttribute('fill', i % 2 === 0 ? 'rgba(91,128,165,0.06)' : 'rgba(91,128,165,0.12)');
+            rect.setAttribute('rx', '3');
+            rect.classList.add('dec-nl-segment');
+            rect.style.cursor = 'pointer';
+            rect.addEventListener('click', () => {
+                decZoomRange = [segStart, segEnd];
+                decRenderNL();
+            });
+            svgEl.appendChild(rect);
+        }
+
+        // Major ticks and labels
+        for (let i = 0; i <= numMajor; i++) {
+            const val = start + i * step;
+            const x   = vx(val);
+            const tick = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            tick.setAttribute('x1', x); tick.setAttribute('y1', axisY - 10);
+            tick.setAttribute('x2', x); tick.setAttribute('y2', axisY + 10);
+            tick.setAttribute('stroke', '#8c8d92'); tick.setAttribute('stroke-width', '1.5');
+            svgEl.appendChild(tick);
+
+            const frac = step < 0.01 ? 4 : step < 0.1 ? 3 : step < 1 ? 2 : step < 10 ? 1 : 0;
+            const lbl  = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            lbl.setAttribute('x', x); lbl.setAttribute('y', axisY + 24);
+            lbl.setAttribute('text-anchor', 'middle');
+            lbl.setAttribute('font-size', '11'); lbl.setAttribute('font-weight', '700');
+            lbl.setAttribute('fill', '#8c8d92'); lbl.setAttribute('font-family', 'Nunito,sans-serif');
+            lbl.textContent = val.toLocaleString('sv-SE', { maximumFractionDigits: frac });
+            svgEl.appendChild(lbl);
+        }
+
+        // Arrow caps
+        const makeArrow = (x, y, dir) => {
+            const p = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            const d = dir === 'right' ? `${x},${y} ${x-8},${y-5} ${x-8},${y+5}` : `${x},${y} ${x+8},${y-5} ${x+8},${y+5}`;
+            p.setAttribute('points', d); p.setAttribute('fill', '#8c8d92');
+            svgEl.appendChild(p);
+        };
+        makeArrow(pad + axisW + 6, axisY, 'right');
+
+        // Mark current value on the number line
+        const val = decGetValue();
+        if (decDigits.length > 0 && val >= start && val <= end) {
+            const xv = vx(val);
+            const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            dot.setAttribute('cx', xv); dot.setAttribute('cy', axisY);
+            dot.setAttribute('r', '7'); dot.setAttribute('fill', '#3d8a8a');
+            dot.setAttribute('stroke', 'white'); dot.setAttribute('stroke-width', '2');
+            svgEl.appendChild(dot);
+
+            const lbl2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            lbl2.setAttribute('x', xv); lbl2.setAttribute('y', axisY - 16);
+            lbl2.setAttribute('text-anchor', 'middle');
+            lbl2.setAttribute('font-size', '12'); lbl2.setAttribute('font-weight', '900');
+            lbl2.setAttribute('fill', '#3d8a8a'); lbl2.setAttribute('font-family', 'Nunito,sans-serif');
+            lbl2.textContent = decFmtSE(val, 4);
+            svgEl.appendChild(lbl2);
+        }
+
+        // Update range label
+        const rl = document.getElementById('dec-nl-range-label');
+        const frac2 = step < 0.01 ? 4 : step < 0.1 ? 3 : step < 1 ? 2 : step < 10 ? 1 : 0;
+        if (rl) rl.textContent = `Visar: ${decFmtSE(start, frac2)} – ${decFmtSE(end, frac2)} (steg: ${decFmtSE(step, frac2)})`;
+    }
+
+    function decNlZoomOut() {
+        const [s, e] = decZoomRange;
+        const range = e - s;
+        decZoomRange = [
+            parseFloat((s - range * 4.5).toFixed(6)),
+            parseFloat((e + range * 4.5).toFixed(6))
+        ];
+        // Clamp to a reasonable range
+        if (decZoomRange[1] - decZoomRange[0] > 10000) decZoomRange = [0, 10];
+        decRenderNL();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // EQUALITY CANVAS
+    // ═══════════════════════════════════════════════════════════════════
+
+    function decRenderEquality() {
+        const v1 = parseFloat((document.getElementById('dec-eq-in1')?.value || '').replace(',', '.')) || 0;
+        const v2 = parseFloat((document.getElementById('dec-eq-in2')?.value || '').replace(',', '.')) || 0;
+        const maxV = Math.max(Math.abs(v1), Math.abs(v2), 0.001);
+
+        function renderBar(fillId, gridId, lblId, value, color, denominator) {
+            const fill = document.getElementById(fillId);
+            const grid = document.getElementById(gridId);
+            const lbl  = document.getElementById(lblId);
+            if (!fill || !grid || !lbl) return;
+            const pct = Math.min(100, Math.abs(value) / maxV * 100);
+            fill.style.height = pct + '%';
+            fill.style.background = color;
+            lbl.textContent = value.toLocaleString('sv-SE', { maximumFractionDigits: 6 });
+
+            // Draw grid lines inside the bar
+            const H = 240; // bar height in px
+            grid.innerHTML = '';
+            grid.setAttribute('viewBox', `0 0 120 ${H}`);
+            if (denominator > 1 && denominator <= 100) {
+                for (let k = 1; k < denominator; k++) {
+                    const y = H - (k / denominator) * H;
+                    const l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    l.setAttribute('x1', '0'); l.setAttribute('y1', y);
+                    l.setAttribute('x2', '120'); l.setAttribute('y2', y);
+                    l.setAttribute('stroke', 'rgba(255,255,255,0.6)');
+                    l.setAttribute('stroke-width', k % 10 === 0 ? '1.5' : '0.8');
+                    grid.appendChild(l);
+                }
+            }
+        }
+
+        // Determine denominator (tenths vs hundredths) per input
+        const getDenom = (str) => {
+            const s = (str || '').replace(',', '.');
+            const [, f = ''] = s.split('.');
+            if (f.length === 0) return 1;
+            if (f.length === 1) return 10;
+            return 100;
+        };
+        const d1 = getDenom(document.getElementById('dec-eq-in1')?.value || '');
+        const d2 = getDenom(document.getElementById('dec-eq-in2')?.value || '');
+
+        renderBar('dec-eq-fill1', 'dec-eq-grid1', 'dec-eq-lbl1', v1, 'rgba(91,128,165,0.75)',  d1);
+        renderBar('dec-eq-fill2', 'dec-eq-grid2', 'dec-eq-lbl2', v2, 'rgba(79,124,117,0.75)', d2);
+
+        const cmp = document.getElementById('dec-eq-comparison');
+        if (cmp) {
+            if (!v1 && !v2) { cmp.classList.add('hidden'); return; }
+            cmp.classList.remove('hidden');
+            const eps = 1e-9;
+            cmp.textContent = Math.abs(v1 - v2) < eps ? `${v1.toLocaleString('sv-SE',{maximumFractionDigits:6})} = ${v2.toLocaleString('sv-SE',{maximumFractionDigits:6})} ✓`
+                            : v1 > v2 ? `${v1.toLocaleString('sv-SE',{maximumFractionDigits:6})} > ${v2.toLocaleString('sv-SE',{maximumFractionDigits:6})}`
+                            :            `${v1.toLocaleString('sv-SE',{maximumFractionDigits:6})} < ${v2.toLocaleString('sv-SE',{maximumFractionDigits:6})}`;
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // INIT
+    // ═══════════════════════════════════════════════════════════════════
+
+    function initDecimaltal() {
+        decBuildTable();
+        decRenderAll();
+        decSyncBlocksFromDigits();
+        decRenderBlocks();
+        decUpdateValueDisplay();
+        // Activate default tool
+        decSetTool('blocks');
     }
 
     window.onload = initApp;
