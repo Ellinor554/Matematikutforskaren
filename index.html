@@ -276,62 +276,56 @@
            Decimaltal – Decimal Numbers Visualisation
            ═══════════════════════════════════════════════ */
         #workspace-decimaltal {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cpath d='M 40 0 L 0 0 0 40' fill='none' stroke='%23b8d4f0' stroke-width='0.8'/%3E%3C/svg%3E");
-            background-size: 40px 40px;
+            background-color: #f8f8f5;
+            background-image:
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Crect width='20' height='20' fill='none' stroke='%23c8c8c4' stroke-width='0.5'/%3E%3C/svg%3E"),
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='none' stroke='%23a0a09c' stroke-width='1'/%3E%3C/svg%3E");
+            background-size: 20px 20px, 100px 100px;
         }
 
-        /* Place value table */
-        .dec-table { display:flex; align-items:stretch; height:176px; border-bottom:2px solid #d6d4d0; flex-shrink:0; position:relative; }
-        .dec-col { flex:1; display:flex; flex-direction:column; border-right:1px solid rgba(170,185,210,0.5); min-width:0; }
+        /* Place value table – taller for classroom visibility */
+        .dec-table { display:flex; align-items:stretch; height:240px; border-bottom:3px solid #222; flex-shrink:0; position:relative; }
+        .dec-col { flex:1; display:flex; flex-direction:column; border-right:2px solid rgba(130,140,160,0.4); min-width:0; }
         .dec-col:last-child { border-right:none; }
-        .dec-col-head { border-bottom:2px solid; text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; padding:4px 2px; min-height:52px; flex-shrink:0; }
-        .dec-col-head .cab { font-size:16px; font-weight:900; line-height:1; }
-        .dec-col-head .cnm { font-size:8px; font-weight:700; opacity:0.8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+        /* Column divider visibility toggle */
+        .dec-table.hide-dividers .dec-col { border-right-color:transparent !important; }
+        .dec-col-head { border-bottom:3px solid; text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; padding:6px 4px; min-height:72px; flex-shrink:0; }
+        .dec-col-head .cab { font-size:22px; font-weight:900; line-height:1; }
+        .dec-col-head .cnm { font-size:11px; font-weight:800; white-space:normal; overflow:hidden; text-overflow:ellipsis; max-width:100%; line-height:1.2; }
         .dec-col-body { flex:1; display:flex; align-items:center; justify-content:center; padding:4px; overflow:visible; }
-        .dec-sep { width:22px; flex-shrink:0; background:rgba(74,75,80,0.07); border-left:4px solid #4a4b50; border-right:4px solid #4a4b50; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:18px; position:relative; z-index:6; }
-        .dec-dot { width:14px; height:14px; border-radius:50%; background:#4a4b50; box-shadow:0 0 0 5px rgba(74,75,80,0.12); }
+        /* Decimal separator – bold permanent anchor */
+        .dec-sep { width:28px; flex-shrink:0; background:rgba(30,30,30,0.06); border-left:5px solid #111; border-right:5px solid #111; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:22px; position:relative; z-index:6; }
+        .dec-dot { width:16px; height:16px; border-radius:50%; background:#111; box-shadow:0 0 0 5px rgba(30,30,30,0.15); }
 
-        /* Digit tokens (absolute layer over table) */
+        /* Digit tokens – large solid black digits, no bounding box */
         #dec-tokens-layer { position:absolute; top:0; left:0; right:0; bottom:0; pointer-events:none; overflow:visible; z-index:20; }
-        .dec-token { position:absolute; display:inline-flex; align-items:center; justify-content:center; width:50px; height:50px; border-radius:12px; font-size:28px; font-weight:900; border:3px solid; box-shadow:0 4px 14px rgba(0,0,0,0.12); pointer-events:auto; touch-action:none; flex-shrink:0; }
+        .dec-token { position:absolute; display:inline-flex; align-items:center; justify-content:center; width:80px; height:80px; border-radius:0; font-size:56px; font-weight:900; color:#111; background:transparent; border:none; box-shadow:none; pointer-events:auto; touch-action:none; flex-shrink:0; line-height:1; }
         .dec-token-ghost { opacity:0.18; }
 
         /* Operations bar */
         .dec-ops-bar { display:flex; gap:8px; padding:10px 16px; background:#fff; border-bottom:1px solid #d6d4d0; flex-wrap:wrap; align-items:center; flex-shrink:0; }
-        .dec-op-btn { padding:7px 16px; border-radius:10px; font-weight:800; font-size:13px; cursor:pointer; border:2px solid; transition:all 0.14s; font-family:'Nunito',sans-serif; white-space:nowrap; }
+        .dec-op-btn { padding:7px 20px; border-radius:8px; font-weight:800; font-size:14px; cursor:pointer; border:2px solid; transition:all 0.14s; font-family:'Nunito',sans-serif; white-space:nowrap; }
         .dec-op-btn:hover { opacity:0.82; transform:scale(1.04); }
 
-        /* Tool tabs */
-        .dec-tabs { display:flex; gap:4px; padding:8px 12px 0; border-bottom:1px solid #d6d4d0; background:#f9f8f6; flex-shrink:0; }
-        .dec-tab { padding:5px 14px; border-radius:7px 7px 0 0; font-weight:700; font-size:12px; cursor:pointer; background:transparent; border:1px solid transparent; border-bottom:none; color:#8c8d92; transition:all 0.14s; }
-        .dec-tab.active { background:#fff; color:#5b80a5; border-color:#d6d4d0; border-bottom-color:#fff; }
-        .dec-tab-panel { display:none; flex:1; overflow:auto; padding:16px; }
+        /* Tool panels – independently visible, no tab system */
+        .dec-tab-panel { display:none; overflow:auto; padding:16px; }
         .dec-tab-panel.active { display:flex; flex-direction:column; gap:12px; }
 
-        /* Blocks tool */
-        .dec-blk-row { display:flex; flex-wrap:wrap; gap:4px; align-items:flex-end; }
-        .dec-blk-one { width:40px; height:40px; border-radius:5px; border:2px solid; display:inline-block; position:relative; }
+        /* Blocks tool – solid opaque 2D shapes, sharp edges */
+        .dec-blk-row { display:flex; flex-wrap:wrap; gap:5px; align-items:flex-end; }
+        .dec-blk-one { width:44px; height:44px; border-radius:0; border:2px solid; display:inline-block; position:relative; }
         .dec-blk-ten-strip { display:flex; flex-direction:column; gap:0; }
-        .dec-blk-ten-strip span { display:block; width:40px; height:4px; border-left:1px solid; border-right:1px solid; }
-        .dec-blk-ten-strip span:first-child { border-top:1px solid; border-radius:2px 2px 0 0; }
-        .dec-blk-ten-strip span:last-child { border-bottom:1px solid; border-radius:0 0 2px 2px; }
-        .dec-blk-tenth { width:40px; height:4px; border-radius:2px; border:1px solid; display:inline-block; }
-        .dec-blk-hundredth { width:4px; height:4px; border-radius:1px; border:1px solid; display:inline-block; }
-        .dec-blk-enter { animation: decBlkAppear 0.3s ease; }
-        @keyframes decBlkAppear { from { transform:scale(0); opacity:0; } to { transform:scale(1); opacity:1; } }
+        .dec-blk-ten-strip span { display:block; width:44px; height:4px; border-left:2px solid; border-right:2px solid; }
+        .dec-blk-ten-strip span:first-child { border-top:2px solid; }
+        .dec-blk-ten-strip span:last-child { border-bottom:2px solid; }
+        .dec-blk-tenth { width:44px; height:6px; border-radius:0; border:2px solid; display:inline-block; }
+        .dec-blk-hundredth { width:6px; height:6px; border-radius:0; border:1px solid; display:inline-block; }
+        .dec-blk-enter { animation: decBlkAppear 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+        @keyframes decBlkAppear { from { transform:scale(0) rotate(-10deg); opacity:0; } to { transform:scale(1) rotate(0deg); opacity:1; } }
 
         /* Number line */
         #dec-nl-svg { cursor:pointer; }
         .dec-nl-segment:hover { opacity:0.5; }
-
-        /* Equality canvas */
-        .dec-eq-col { display:flex; flex-direction:column; align-items:center; gap:8px; }
-        .dec-eq-input { width:120px; border:2px solid #d6d4d0; border-radius:10px; padding:6px 8px; font-family:'Nunito',sans-serif; font-size:20px; font-weight:800; text-align:center; color:#4a4b50; outline:none; }
-        .dec-eq-input:focus { border-color:#5b80a5; }
-        .dec-eq-bar-outer { width:120px; height:240px; border:2px solid #d6d4d0; border-radius:4px; overflow:hidden; position:relative; background:#f4f3ef; }
-        .dec-eq-bar-fill { position:absolute; bottom:0; left:0; right:0; transition:height 0.55s cubic-bezier(0.34,1.56,0.64,1); }
-        .dec-eq-gridlines { position:absolute; top:0; left:0; right:0; bottom:0; pointer-events:none; }
-        .dec-eq-label { font-size:13px; font-weight:700; color:#4a4b50; text-align:center; }
     </style>
 </head>
 <body class="text-soft-text flex flex-col h-screen">
@@ -1140,10 +1134,10 @@
                 <div>
                     <h4 class="font-bold text-xs uppercase tracking-wider text-soft-muted mb-3">Flytta siffror</h4>
                     <div class="grid grid-cols-2 gap-2">
-                        <button onclick="decShift(1)" class="dec-op-btn" style="background:rgba(91,128,165,0.12);border-color:#5b80a5;color:#5b80a5;">× 10</button>
-                        <button onclick="decShift(2)" class="dec-op-btn" style="background:rgba(91,128,165,0.12);border-color:#5b80a5;color:#5b80a5;">× 100</button>
-                        <button onclick="decShift(-1)" class="dec-op-btn" style="background:rgba(168,92,114,0.12);border-color:#a85c72;color:#a85c72;">÷ 10</button>
-                        <button onclick="decShift(-2)" class="dec-op-btn" style="background:rgba(168,92,114,0.12);border-color:#a85c72;color:#a85c72;">÷ 100</button>
+                        <button onclick="decShift(1)"  class="dec-op-btn" style="background:rgba(21,101,192,0.10);border-color:#1565C0;color:#1565C0;">× 10</button>
+                        <button onclick="decShift(2)"  class="dec-op-btn" style="background:rgba(21,101,192,0.10);border-color:#1565C0;color:#1565C0;">× 100</button>
+                        <button onclick="decShift(-1)" class="dec-op-btn" style="background:rgba(183,28,28,0.10);border-color:#B71C1C;color:#B71C1C;">÷ 10</button>
+                        <button onclick="decShift(-2)" class="dec-op-btn" style="background:rgba(183,28,28,0.10);border-color:#B71C1C;color:#B71C1C;">÷ 100</button>
                     </div>
                     <p class="text-xs text-soft-muted mt-2"><i class="fas fa-hand-point-left mr-1"></i>Dra i tabellen vänster/höger för manuell förflyttning.</p>
                 </div>
@@ -1159,19 +1153,22 @@
                 <hr class="border-soft-border"/>
 
                 <div>
-                    <h4 class="font-bold text-xs uppercase tracking-wider text-soft-muted mb-3">Verktyg</h4>
+                    <h4 class="font-bold text-xs uppercase tracking-wider text-soft-muted mb-3">Visa / Dölj</h4>
                     <div class="flex flex-col gap-2">
-                        <button onclick="decSetTool('blocks')" id="dec-tool-btn-blocks"
-                            class="flex items-center gap-2 px-3 py-2 rounded-xl border font-bold text-sm transition-all bg-soft-teal/10 border-soft-teal text-soft-teal">
-                            <i class="fas fa-cubes text-sm"></i> Basmaterial
+                        <button onclick="decToggleTool('blocks')" id="dec-tool-btn-blocks"
+                            class="flex items-center gap-2 px-3 py-2 rounded-xl border font-bold text-sm transition-all"
+                            style="background:rgba(61,138,138,0.15);border-color:#3d8a8a;color:#3d8a8a;">
+                            <i class="fas fa-eye text-sm"></i> Basmaterial
                         </button>
-                        <button onclick="decSetTool('numberline')" id="dec-tool-btn-numberline"
-                            class="flex items-center gap-2 px-3 py-2 rounded-xl border font-bold text-sm transition-all bg-soft-bg border-soft-border text-soft-muted">
-                            <i class="fas fa-ruler-horizontal text-sm"></i> Tallinje (zoom)
+                        <button onclick="decToggleTool('numberline')" id="dec-tool-btn-numberline"
+                            class="flex items-center gap-2 px-3 py-2 rounded-xl border font-bold text-sm transition-all"
+                            style="background:rgba(91,128,165,0.10);border-color:#8c8d92;color:#8c8d92;">
+                            <i class="fas fa-eye-slash text-sm"></i> Tallinje (zoom)
                         </button>
-                        <button onclick="decSetTool('equality')" id="dec-tool-btn-equality"
-                            class="flex items-center gap-2 px-3 py-2 rounded-xl border font-bold text-sm transition-all bg-soft-bg border-soft-border text-soft-muted">
-                            <i class="fas fa-equals text-sm"></i> Jämförelseyta
+                        <button onclick="decToggleColumns()" id="dec-tool-btn-columns"
+                            class="flex items-center gap-2 px-3 py-2 rounded-xl border font-bold text-sm transition-all"
+                            style="background:rgba(61,138,138,0.15);border-color:#3d8a8a;color:#3d8a8a;">
+                            <i class="fas fa-eye text-sm"></i> Kolumnavdelare
                         </button>
                     </div>
                 </div>
@@ -1191,45 +1188,21 @@
                     <div id="dec-tokens-layer"></div>
                 </div>
 
-                <!-- Tab: Blocks -->
+                <!-- Panel: Blocks (independently toggleable) -->
                 <div id="dec-panel-blocks" class="dec-tab-panel active flex-1 overflow-auto">
                     <h4 class="font-bold text-soft-muted text-xs uppercase tracking-wider">Basmaterial – konkret representation</h4>
                     <div id="dec-blocks-area" class="flex flex-wrap gap-6 items-start pt-2"></div>
                     <div id="dec-blocks-actions" class="flex gap-3 flex-wrap"></div>
                 </div>
 
-                <!-- Tab: Number line -->
-                <div id="dec-panel-numberline" class="dec-tab-panel flex-1 overflow-auto">
+                <!-- Panel: Number line (independently toggleable) -->
+                <div id="dec-panel-numberline" class="dec-tab-panel overflow-auto" style="max-height:200px;">
                     <div class="flex items-center gap-4 mb-2 flex-wrap">
                         <h4 class="font-bold text-soft-muted text-xs uppercase tracking-wider">Tallinje – klicka för att zooma in</h4>
                         <button onclick="decNlZoomOut()" class="px-3 py-1 bg-soft-blueLight/20 text-soft-blue font-bold rounded-lg text-xs hover:bg-soft-blueLight/40"><i class="fas fa-search-minus mr-1"></i>Zooma ut</button>
                         <span id="dec-nl-range-label" class="text-xs font-semibold text-soft-muted"></span>
                     </div>
                     <svg id="dec-nl-svg" width="100%" height="120"></svg>
-                </div>
-
-                <!-- Tab: Equality canvas -->
-                <div id="dec-panel-equality" class="dec-tab-panel flex-1 overflow-auto">
-                    <h4 class="font-bold text-soft-muted text-xs uppercase tracking-wider mb-3">Jämförelseyta – skriv två tal och se hur de förhåller sig</h4>
-                    <div class="flex gap-8 items-end flex-wrap">
-                        <div class="dec-eq-col">
-                            <input id="dec-eq-in1" class="dec-eq-input" type="text" placeholder="0,5" oninput="decRenderEquality()"/>
-                            <div class="dec-eq-bar-outer" id="dec-eq-bar1">
-                                <div class="dec-eq-bar-fill" id="dec-eq-fill1"></div>
-                                <svg class="dec-eq-gridlines" id="dec-eq-grid1"></svg>
-                            </div>
-                            <div class="dec-eq-label" id="dec-eq-lbl1">—</div>
-                        </div>
-                        <div class="dec-eq-col">
-                            <input id="dec-eq-in2" class="dec-eq-input" type="text" placeholder="0,50" oninput="decRenderEquality()"/>
-                            <div class="dec-eq-bar-outer" id="dec-eq-bar2">
-                                <div class="dec-eq-bar-fill" id="dec-eq-fill2"></div>
-                                <svg class="dec-eq-gridlines" id="dec-eq-grid2"></svg>
-                            </div>
-                            <div class="dec-eq-label" id="dec-eq-lbl2">—</div>
-                        </div>
-                        <div id="dec-eq-comparison" class="text-lg font-extrabold text-soft-teal self-center hidden"></div>
-                    </div>
                 </div>
 
             </div><!-- /workspace-decimaltal -->
@@ -3963,13 +3936,15 @@
      * pos: power of 10 (3=thousands, 0=ones, -1=tenths, etc.)
      */
     const DEC_COL_DEFS = [
-        { pos: 3,  key: 'tusental',    label: 'Tusental',    abbr: 'T',  color: '#1565C0', bg: 'rgba(30,136,229,0.09)',  border: '#1565C0' },
-        { pos: 2,  key: 'hundratal',   label: 'Hundratal',   abbr: 'H',  color: '#2E7D32', bg: 'rgba(56,142,60,0.09)',   border: '#2E7D32' },
-        { pos: 1,  key: 'tiotal',      label: 'Tiotal',      abbr: 'Ti', color: '#92700A', bg: 'rgba(249,168,37,0.11)',  border: '#92700A' },
-        { pos: 0,  key: 'ental',       label: 'Ental',       abbr: 'E',  color: '#C62828', bg: 'rgba(229,57,53,0.09)',   border: '#C62828' },
-        { pos: -1, key: 'tiondelar',   label: 'Tiondelar',   abbr: 'z',  color: '#6a1b9a', bg: 'rgba(106,27,154,0.09)', border: '#6a1b9a' },
-        { pos: -2, key: 'hundradelar', label: 'Hundradelar', abbr: 'h',  color: '#00695c', bg: 'rgba(0,105,92,0.09)',   border: '#00695c' },
-        { pos: -3, key: 'tusendelar',  label: 'Tusendelar',  abbr: 'm',  color: '#4527a0', bg: 'rgba(69,39,160,0.09)', border: '#4527a0' },
+        { pos: 3,  key: 'tusental',    label: 'Tusental',    abbr: 'T',     color: '#1565C0', bg: 'rgba(30,136,229,0.09)',  border: '#1565C0' },
+        { pos: 2,  key: 'hundratal',   label: 'Hundratal',   abbr: 'H',     color: '#2E7D32', bg: 'rgba(56,142,60,0.09)',   border: '#2E7D32' },
+        { pos: 1,  key: 'tiotal',      label: 'Tiotal',      abbr: 'Ti',    color: '#92700A', bg: 'rgba(249,168,37,0.11)',  border: '#92700A' },
+        { pos: 0,  key: 'ental',       label: 'Ental',       abbr: 'E',     color: '#C62828', bg: 'rgba(229,57,53,0.09)',   border: '#C62828' },
+        { pos: -1, key: 'tiondelar',   label: 'Tiondelar',   abbr: '0,1',   color: '#6a1b9a', bg: 'rgba(106,27,154,0.09)', border: '#6a1b9a' },
+        { pos: -2, key: 'hundradelar', label: 'Hundradelar', abbr: '0,01',  color: '#00695c', bg: 'rgba(0,105,92,0.09)',   border: '#00695c' },
+        { pos: -3, key: 'tusendelar',  label: 'Tusendelar',  abbr: '0,001', color: '#4527a0', bg: 'rgba(69,39,160,0.09)',  border: '#4527a0' },
+        // Note: color is used for col-head text/border; bg/border for head background.
+        // Digit tokens render as plain solid-black – column colors are not applied to tokens.
     ];
 
     let decDigits      = [];           // [{pos, val}, …]
@@ -4078,7 +4053,7 @@
         const layerRect = layer.getBoundingClientRect();
         if (!layerRect.width) return;
 
-        const TOKEN_SIZE = 50;
+        const TOKEN_SIZE = 80;
         const table = document.getElementById('dec-table');
         if (!table) return;
         const headEl = table.querySelector('.dec-col-head');
@@ -4109,10 +4084,6 @@
                 token.style.opacity = '1';
                 token.style.left = newLeft + 'px';
                 token.style.top  = tokenTop + 'px';
-                // Update colour for new column
-                token.style.background   = col.bg;
-                token.style.borderColor  = col.border;
-                token.style.color        = col.color;
             }
         });
     }
@@ -4124,16 +4095,10 @@
         layer.querySelectorAll('.dec-token').forEach(t => t.remove());
 
         decDigits.forEach((digit, i) => {
-            const col = DEC_COL_DEFS.find(c => c.pos === digit.pos);
             const token = document.createElement('div');
             token.id        = `dec-token-${i}`;
             token.className = 'dec-token';
             token.textContent = digit.val;
-            if (col) {
-                token.style.background  = col.bg;
-                token.style.borderColor = col.border;
-                token.style.color       = col.color;
-            }
             token.style.transition = 'none';
             layer.appendChild(token);
         });
@@ -4183,25 +4148,44 @@
         decUpdateValueDisplay();
     }
 
-    // ── Tool selector ─────────────────────────────────────────────────────────
-    function decSetTool(tool) {
-        decTool = tool;
-        ['blocks', 'numberline', 'equality'].forEach(t => {
-            const panel = document.getElementById(`dec-panel-${t}`);
-            const btn   = document.getElementById(`dec-tool-btn-${t}`);
-            const active = (t === tool);
-            if (panel) panel.classList.toggle('active', active);
-            if (btn) {
-                if (active) {
-                    btn.style.cssText = 'background:rgba(61,138,138,0.15);border-color:#3d8a8a;color:#3d8a8a;';
-                } else {
-                    btn.style.cssText = '';
-                    btn.classList.add('bg-soft-bg', 'border-soft-border', 'text-soft-muted');
-                }
+    // ── Tool toggle (Show/Hide each panel independently) ──────────────────────
+    let decToolVisible = { blocks: true, numberline: false };
+    let decColumnsVisible = true;
+
+    function decToggleTool(tool) {
+        decToolVisible[tool] = !decToolVisible[tool];
+        const panel = document.getElementById(`dec-panel-${tool}`);
+        const btn   = document.getElementById(`dec-tool-btn-${tool}`);
+        const visible = decToolVisible[tool];
+        if (panel) panel.classList.toggle('active', visible);
+        if (btn) {
+            const icon = btn.querySelector('i');
+            if (visible) {
+                btn.style.cssText = 'background:rgba(61,138,138,0.15);border-color:#3d8a8a;color:#3d8a8a;';
+                if (icon) { icon.className = 'fas fa-eye text-sm'; }
+            } else {
+                btn.style.cssText = 'background:rgba(91,128,165,0.08);border-color:#8c8d92;color:#8c8d92;';
+                if (icon) { icon.className = 'fas fa-eye-slash text-sm'; }
             }
-        });
-        if (tool === 'numberline') decRenderNL();
-        if (tool === 'equality')   decRenderEquality();
+        }
+        if (tool === 'numberline' && visible) decRenderNL();
+    }
+
+    function decToggleColumns() {
+        decColumnsVisible = !decColumnsVisible;
+        const table = document.getElementById('dec-table');
+        const btn   = document.getElementById('dec-tool-btn-columns');
+        if (table) table.classList.toggle('hide-dividers', !decColumnsVisible);
+        if (btn) {
+            const icon = btn.querySelector('i');
+            if (decColumnsVisible) {
+                btn.style.cssText = 'background:rgba(61,138,138,0.15);border-color:#3d8a8a;color:#3d8a8a;';
+                if (icon) { icon.className = 'fas fa-eye text-sm'; }
+            } else {
+                btn.style.cssText = 'background:rgba(91,128,165,0.08);border-color:#8c8d92;color:#8c8d92;';
+                if (icon) { icon.className = 'fas fa-eye-slash text-sm'; }
+            }
+        }
     }
 
     // ── Reset ─────────────────────────────────────────────────────────────────
@@ -4214,7 +4198,6 @@
         decRenderAll();
         decRenderBlocks();
         decRenderNL();
-        decRenderEquality();
         decUpdateValueDisplay();
     }
 
@@ -4263,10 +4246,6 @@
         area.innerHTML    = '';
         actions.innerHTML = '';
 
-        const colOnes   = DEC_COL_DEFS.find(c => c.pos ===  0);
-        const colTenths = DEC_COL_DEFS.find(c => c.pos === -1);
-        const colHths   = DEC_COL_DEFS.find(c => c.pos === -2);
-
         function makeGroup(label, color, items) {
             if (items.length === 0) return null;
             const g = document.createElement('div');
@@ -4283,41 +4262,46 @@
             return g;
         }
 
+        // Solid opaque block colors (non-transparent, 2D physical material style)
+        const solidOnes   = { bg: '#FFCDD2', border: '#C62828', color: '#C62828' };
+        const solidTenths = { bg: '#E1BEE7', border: '#6a1b9a', color: '#6a1b9a' };
+        const solidHths   = { bg: '#B2DFDB', border: '#00695c', color: '#00695c' };
+
         // Ones blocks (cubes)
         const oneEls = Array.from({length: decBlocksState.ones}, (_, k) => {
             const b = document.createElement('div');
             b.className = 'dec-blk-one' + (newItems ? ' dec-blk-enter' : '');
-            b.style.cssText = `background:${colOnes?.bg||'#fff'}; border-color:${colOnes?.border||'#C62828'};`;
+            b.style.cssText = `background:${solidOnes.bg}; border-color:${solidOnes.border};`;
             b.title = 'En ental (1)';
             return b;
         });
-        const gOnes = makeGroup(`Ental ×${decBlocksState.ones}`, colOnes?.color || '#C62828', oneEls);
+        const gOnes = makeGroup(`Ental ×${decBlocksState.ones}`, solidOnes.color, oneEls);
         if (gOnes) area.appendChild(gOnes);
 
-        // Tenths blocks (horizontal slices)
+        // Tenths blocks (horizontal rods/slices)
         const tenthEls = Array.from({length: Math.min(decBlocksState.tenths, 30)}, (_, k) => {
             const b = document.createElement('div');
             b.className = 'dec-blk-tenth' + (newItems ? ' dec-blk-enter' : '');
-            b.style.cssText = `background:${colTenths?.bg||'#ede7f6'}; border-color:${colTenths?.border||'#6a1b9a'};`;
+            b.style.cssText = `background:${solidTenths.bg}; border-color:${solidTenths.border};`;
             b.title = 'En tiondel (0,1)';
             return b;
         });
         const gTenths = makeGroup(
             `Tiondelar ×${decBlocksState.tenths}${decBlocksState.tenths > 30 ? ' (visar max 30)' : ''}`,
-            colTenths?.color || '#6a1b9a', tenthEls);
+            solidTenths.color, tenthEls);
         if (gTenths) area.appendChild(gTenths);
 
         // Hundredths blocks (tiny squares)
         const hthEls = Array.from({length: Math.min(decBlocksState.hundredths, 50)}, (_, k) => {
             const b = document.createElement('div');
             b.className = 'dec-blk-hundredth' + (newItems ? ' dec-blk-enter' : '');
-            b.style.cssText = `background:${colHths?.bg||'#e0f2f1'}; border-color:${colHths?.border||'#00695c'};`;
+            b.style.cssText = `background:${solidHths.bg}; border-color:${solidHths.border};`;
             b.title = 'En hundradel (0,01)';
             return b;
         });
         const gHths = makeGroup(
             `Hundradelar ×${decBlocksState.hundredths}${decBlocksState.hundredths > 50 ? ' (visar max 50)' : ''}`,
-            colHths?.color || '#00695c', hthEls);
+            solidHths.color, hthEls);
         if (gHths) area.appendChild(gHths);
 
         if (decBlocksState.ones === 0 && decBlocksState.tenths === 0 && decBlocksState.hundredths === 0) {
@@ -4325,11 +4309,11 @@
         }
 
         // Split / Merge action buttons
-        const btnStyle = 'px-3 py-1.5 rounded-lg font-bold text-xs border-2 cursor-pointer transition-all hover:opacity-80 font-[Nunito]';
+        const btnStyle = 'px-3 py-1.5 rounded font-bold text-xs border-2 cursor-pointer transition-all hover:opacity-80 font-[Nunito]';
         if (decBlocksState.ones > 0) {
             const b = document.createElement('button');
             b.className = btnStyle;
-            b.style.cssText = `background:${colOnes?.bg};border-color:${colOnes?.border};color:${colOnes?.color};`;
+            b.style.cssText = `background:${solidOnes.bg};border-color:${solidOnes.border};color:${solidOnes.color};`;
             b.innerHTML = '<i class="fas fa-expand-arrows-alt mr-1"></i>Dela 1 ental → 10 tiondelar';
             b.onclick = decSplitOne;
             actions.appendChild(b);
@@ -4337,7 +4321,7 @@
         if (decBlocksState.tenths >= 10) {
             const b = document.createElement('button');
             b.className = btnStyle;
-            b.style.cssText = `background:${colOnes?.bg};border-color:${colOnes?.border};color:${colOnes?.color};`;
+            b.style.cssText = `background:${solidOnes.bg};border-color:${solidOnes.border};color:${solidOnes.color};`;
             b.innerHTML = '<i class="fas fa-compress-arrows-alt mr-1"></i>Slå ihop 10 tiondelar → 1 ental';
             b.onclick = decMergeTenths;
             actions.appendChild(b);
@@ -4345,7 +4329,7 @@
         if (decBlocksState.tenths > 0) {
             const b = document.createElement('button');
             b.className = btnStyle;
-            b.style.cssText = `background:${colTenths?.bg};border-color:${colTenths?.border};color:${colTenths?.color};`;
+            b.style.cssText = `background:${solidTenths.bg};border-color:${solidTenths.border};color:${solidTenths.color};`;
             b.innerHTML = '<i class="fas fa-expand-arrows-alt mr-1"></i>Dela 1 tiondel → 10 hundradelar';
             b.onclick = decSplitTenth;
             actions.appendChild(b);
@@ -4353,7 +4337,7 @@
         if (decBlocksState.hundredths >= 10) {
             const b = document.createElement('button');
             b.className = btnStyle;
-            b.style.cssText = `background:${colTenths?.bg};border-color:${colTenths?.border};color:${colTenths?.color};`;
+            b.style.cssText = `background:${solidTenths.bg};border-color:${solidTenths.border};color:${solidTenths.color};`;
             b.innerHTML = '<i class="fas fa-compress-arrows-alt mr-1"></i>Slå ihop 10 hundradelar → 1 tiondel';
             b.onclick = decMergeHundredths;
             actions.appendChild(b);
@@ -4366,7 +4350,7 @@
 
     function decRenderNL() {
         const svgEl = document.getElementById('dec-nl-svg');
-        if (!svgEl || decTool !== 'numberline') return;
+        if (!svgEl || !decToolVisible?.numberline) return;
 
         const parent = svgEl.parentElement;
         const W = Math.max(300, parent ? parent.offsetWidth - 32 : 600);
@@ -4485,67 +4469,6 @@
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // EQUALITY CANVAS
-    // ═══════════════════════════════════════════════════════════════════
-
-    function decRenderEquality() {
-        const v1 = parseFloat((document.getElementById('dec-eq-in1')?.value || '').replace(',', '.')) || 0;
-        const v2 = parseFloat((document.getElementById('dec-eq-in2')?.value || '').replace(',', '.')) || 0;
-        const maxV = Math.max(Math.abs(v1), Math.abs(v2), 0.001);
-
-        function renderBar(fillId, gridId, lblId, value, color, denominator) {
-            const fill = document.getElementById(fillId);
-            const grid = document.getElementById(gridId);
-            const lbl  = document.getElementById(lblId);
-            if (!fill || !grid || !lbl) return;
-            const pct = Math.min(100, Math.abs(value) / maxV * 100);
-            fill.style.height = pct + '%';
-            fill.style.background = color;
-            lbl.textContent = value.toLocaleString('sv-SE', { maximumFractionDigits: 6 });
-
-            // Draw grid lines inside the bar
-            const H = 240; // bar height in px
-            grid.innerHTML = '';
-            grid.setAttribute('viewBox', `0 0 120 ${H}`);
-            if (denominator > 1 && denominator <= 100) {
-                for (let k = 1; k < denominator; k++) {
-                    const y = H - (k / denominator) * H;
-                    const l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                    l.setAttribute('x1', '0'); l.setAttribute('y1', y);
-                    l.setAttribute('x2', '120'); l.setAttribute('y2', y);
-                    l.setAttribute('stroke', 'rgba(255,255,255,0.6)');
-                    l.setAttribute('stroke-width', k % 10 === 0 ? '1.5' : '0.8');
-                    grid.appendChild(l);
-                }
-            }
-        }
-
-        // Determine denominator (tenths vs hundredths) per input
-        const getDenom = (str) => {
-            const s = (str || '').replace(',', '.');
-            const [, f = ''] = s.split('.');
-            if (f.length === 0) return 1;
-            if (f.length === 1) return 10;
-            return 100;
-        };
-        const d1 = getDenom(document.getElementById('dec-eq-in1')?.value || '');
-        const d2 = getDenom(document.getElementById('dec-eq-in2')?.value || '');
-
-        renderBar('dec-eq-fill1', 'dec-eq-grid1', 'dec-eq-lbl1', v1, 'rgba(91,128,165,0.75)',  d1);
-        renderBar('dec-eq-fill2', 'dec-eq-grid2', 'dec-eq-lbl2', v2, 'rgba(79,124,117,0.75)', d2);
-
-        const cmp = document.getElementById('dec-eq-comparison');
-        if (cmp) {
-            if (!v1 && !v2) { cmp.classList.add('hidden'); return; }
-            cmp.classList.remove('hidden');
-            const eps = 1e-9;
-            cmp.textContent = Math.abs(v1 - v2) < eps ? `${v1.toLocaleString('sv-SE',{maximumFractionDigits:6})} = ${v2.toLocaleString('sv-SE',{maximumFractionDigits:6})} ✓`
-                            : v1 > v2 ? `${v1.toLocaleString('sv-SE',{maximumFractionDigits:6})} > ${v2.toLocaleString('sv-SE',{maximumFractionDigits:6})}`
-                            :            `${v1.toLocaleString('sv-SE',{maximumFractionDigits:6})} < ${v2.toLocaleString('sv-SE',{maximumFractionDigits:6})}`;
-        }
-    }
-
-    // ═══════════════════════════════════════════════════════════════════
     // INIT
     // ═══════════════════════════════════════════════════════════════════
 
@@ -4555,16 +4478,13 @@
         decSyncBlocksFromDigits();
         decRenderBlocks();
         decUpdateValueDisplay();
-        // Activate default tool
-        decSetTool('blocks');
     }
 
     /** Lightweight re-entry: re-position tokens and refresh active tool (no DOM rebuild). */
     function decOnEnter() {
         decPositionTokens(false);
         decRenderBlocks();
-        if (decTool === 'numberline') decRenderNL();
-        if (decTool === 'equality')   decRenderEquality();
+        if (decToolVisible.numberline) decRenderNL();
     }
 
     window.onload = initApp;
