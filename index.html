@@ -1127,8 +1127,10 @@
                     <div class="grid grid-cols-2 gap-2">
                         <button onclick="decShift(1)"  class="dec-op-btn" style="background:rgba(21,101,192,0.10);border-color:#1565C0;color:#1565C0;">× 10</button>
                         <button onclick="decShift(2)"  class="dec-op-btn" style="background:rgba(21,101,192,0.10);border-color:#1565C0;color:#1565C0;">× 100</button>
+                        <button onclick="decShift(3)"  class="dec-op-btn" style="background:rgba(21,101,192,0.10);border-color:#1565C0;color:#1565C0;">× 1000</button>
                         <button onclick="decShift(-1)" class="dec-op-btn" style="background:rgba(183,28,28,0.10);border-color:#B71C1C;color:#B71C1C;">÷ 10</button>
                         <button onclick="decShift(-2)" class="dec-op-btn" style="background:rgba(183,28,28,0.10);border-color:#B71C1C;color:#B71C1C;">÷ 100</button>
+                        <button onclick="decShift(-3)" class="dec-op-btn" style="background:rgba(183,28,28,0.10);border-color:#B71C1C;color:#B71C1C;">÷ 1000</button>
                     </div>
                     <p class="text-xs text-soft-muted mt-2"><i class="fas fa-hand-point-left mr-1"></i>Dra i tabellen vänster/höger för manuell förflyttning.</p>
                 </div>
@@ -1187,13 +1189,15 @@
                 </div>
 
                 <!-- Panel: Number line (independently toggleable) -->
-                <div id="dec-panel-numberline" class="dec-tab-panel overflow-auto" style="max-height:200px;">
+                <div id="dec-panel-numberline" class="dec-tab-panel overflow-auto" style="max-height:220px;">
                     <div class="flex items-center gap-4 mb-2 flex-wrap">
                         <h4 class="font-bold text-soft-muted text-xs uppercase tracking-wider">Tallinje – klicka för att zooma in</h4>
                         <button onclick="decNlZoomOut()" class="px-3 py-1 bg-soft-blueLight/20 text-soft-blue font-bold rounded-lg text-xs hover:bg-soft-blueLight/40"><i class="fas fa-search-minus mr-1"></i>Zooma ut</button>
+                        <button onclick="decNlPinCurrent()" class="px-3 py-1 bg-soft-tealLight/20 text-soft-teal font-bold rounded-lg text-xs hover:bg-soft-tealLight/40"><i class="fas fa-map-pin mr-1"></i>Fäst punkt</button>
+                        <button onclick="decNlClearPins()" class="px-3 py-1 bg-soft-pink/10 text-soft-pink font-bold rounded-lg text-xs hover:bg-soft-pink/20"><i class="fas fa-times mr-1"></i>Rensa fästa</button>
                         <span id="dec-nl-range-label" class="text-xs font-semibold text-soft-muted"></span>
                     </div>
-                    <svg id="dec-nl-svg" width="100%" height="120"></svg>
+                    <svg id="dec-nl-svg" width="100%" height="130"></svg>
                 </div>
 
             </div><!-- /workspace-decimaltal -->
@@ -3942,6 +3946,7 @@
     let decBlocksState = {ones:0, tenths:0, hundredths:0};
     let decTool        = 'blocks';
     let decZoomRange   = [0, 10];      // number line visible range [start, end]
+    let decNlPinnedPoints = [];        // [{value, color, label}, …] – multi-point comparison
     let decTableDragX  = null;
     let decTableDragShift = 0;
     let decTableReady  = false;        // guard against duplicate event-listener registration
@@ -4396,10 +4401,10 @@
             `Ental ×${decBlocksState.ones}`, p3.ones.front, oneEls);
         if (gOnes) area.appendChild(gOnes);
 
-        // ── Tenths: flat slabs (60×9) ─────────────────────────────────────────
+        // ── Tenths: vertical slabs (9×60) – standing upright ─────────────────
         const tenthEls = Array.from({length: Math.min(decBlocksState.tenths, 30)}, () => {
             const w = makeWrapper('En tiondel (0,1)', !!newItems);
-            w.appendChild(decMakeFlatPlate(60, 9, p3.tenths.front));
+            w.appendChild(decMakeFlatPlate(9, 60, p3.tenths.front));
             return w;
         });
         const gTenths = makeGroup(
@@ -4468,7 +4473,7 @@
 
         const parent = svgEl.parentElement;
         const W = Math.max(300, parent ? parent.offsetWidth - 32 : 600);
-        const H = 120;
+        const H = 130;
         svgEl.setAttribute('viewBox', `0 0 ${W} ${H}`);
         svgEl.setAttribute('width', W);
         svgEl.setAttribute('height', H);
@@ -4478,16 +4483,16 @@
         const range  = end - start;
         const pad    = 36;
         const axisW  = W - 2 * pad;
-        const axisY  = 72;
+        const axisY  = 80;
 
         // Helper: value → x pixel
         const vx = v => pad + (v - start) / range * axisW;
 
-        // Background axis line
+        // Background axis line – dark, high-contrast
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
         line.setAttribute('x1', pad); line.setAttribute('y1', axisY);
         line.setAttribute('x2', pad + axisW); line.setAttribute('y2', axisY);
-        line.setAttribute('stroke', '#d6d4d0'); line.setAttribute('stroke-width', '2');
+        line.setAttribute('stroke', '#222'); line.setAttribute('stroke-width', '3');
         svgEl.appendChild(line);
 
         // Determine number of divisions: prefer 10 minor ticks per major
@@ -4502,9 +4507,9 @@
             const x2 = vx(segEnd);
 
             const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-            rect.setAttribute('x', x1 + 1); rect.setAttribute('y', axisY - 12);
-            rect.setAttribute('width', x2 - x1 - 2); rect.setAttribute('height', 24);
-            rect.setAttribute('fill', i % 2 === 0 ? 'rgba(91,128,165,0.06)' : 'rgba(91,128,165,0.12)');
+            rect.setAttribute('x', x1 + 1); rect.setAttribute('y', axisY - 14);
+            rect.setAttribute('width', x2 - x1 - 2); rect.setAttribute('height', 28);
+            rect.setAttribute('fill', i % 2 === 0 ? 'rgba(91,128,165,0.07)' : 'rgba(91,128,165,0.14)');
             rect.setAttribute('rx', '3');
             rect.classList.add('dec-nl-segment');
             rect.style.cursor = 'pointer';
@@ -4515,22 +4520,22 @@
             svgEl.appendChild(rect);
         }
 
-        // Major ticks and labels
+        // Major ticks and labels – dark, high-contrast
         for (let i = 0; i <= numMajor; i++) {
             const val = start + i * step;
             const x   = vx(val);
             const tick = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            tick.setAttribute('x1', x); tick.setAttribute('y1', axisY - 10);
-            tick.setAttribute('x2', x); tick.setAttribute('y2', axisY + 10);
-            tick.setAttribute('stroke', '#8c8d92'); tick.setAttribute('stroke-width', '1.5');
+            tick.setAttribute('x1', x); tick.setAttribute('y1', axisY - 12);
+            tick.setAttribute('x2', x); tick.setAttribute('y2', axisY + 12);
+            tick.setAttribute('stroke', '#222'); tick.setAttribute('stroke-width', '2');
             svgEl.appendChild(tick);
 
             const frac = step < 0.01 ? 4 : step < 0.1 ? 3 : step < 1 ? 2 : step < 10 ? 1 : 0;
             const lbl  = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            lbl.setAttribute('x', x); lbl.setAttribute('y', axisY + 24);
+            lbl.setAttribute('x', x); lbl.setAttribute('y', axisY + 28);
             lbl.setAttribute('text-anchor', 'middle');
             lbl.setAttribute('font-size', '11'); lbl.setAttribute('font-weight', '700');
-            lbl.setAttribute('fill', '#8c8d92'); lbl.setAttribute('font-family', 'Nunito,sans-serif');
+            lbl.setAttribute('fill', '#333'); lbl.setAttribute('font-family', 'Nunito,sans-serif');
             lbl.textContent = val.toLocaleString('sv-SE', { maximumFractionDigits: frac });
             svgEl.appendChild(lbl);
         }
@@ -4539,10 +4544,33 @@
         const makeArrow = (x, y, dir) => {
             const p = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
             const d = dir === 'right' ? `${x},${y} ${x-8},${y-5} ${x-8},${y+5}` : `${x},${y} ${x+8},${y-5} ${x+8},${y+5}`;
-            p.setAttribute('points', d); p.setAttribute('fill', '#8c8d92');
+            p.setAttribute('points', d); p.setAttribute('fill', '#222');
             svgEl.appendChild(p);
         };
         makeArrow(pad + axisW + 6, axisY, 'right');
+
+        // Palette for pinned points (distinct colors)
+        const PIN_COLORS = ['#e53935','#1565C0','#2E7D32','#F57F17','#6A1B9A','#00695C','#AD1457'];
+
+        // Render pinned points below the axis
+        decNlPinnedPoints.forEach((pt, idx) => {
+            if (pt.value < start || pt.value > end) return;
+            const xp = vx(pt.value);
+            const color = PIN_COLORS[idx % PIN_COLORS.length];
+            // Pin marker (triangle above axis)
+            const pin = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            pin.setAttribute('points', `${xp},${axisY-16} ${xp-6},${axisY-28} ${xp+6},${axisY-28}`);
+            pin.setAttribute('fill', color);
+            svgEl.appendChild(pin);
+            // Pin label above
+            const pl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            pl.setAttribute('x', xp); pl.setAttribute('y', axisY - 32);
+            pl.setAttribute('text-anchor', 'middle');
+            pl.setAttribute('font-size', '11'); pl.setAttribute('font-weight', '900');
+            pl.setAttribute('fill', color); pl.setAttribute('font-family', 'Nunito,sans-serif');
+            pl.textContent = pt.label;
+            svgEl.appendChild(pl);
+        });
 
         // Mark current value on the number line
         const val = decGetValue();
@@ -4550,12 +4578,12 @@
             const xv = vx(val);
             const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
             dot.setAttribute('cx', xv); dot.setAttribute('cy', axisY);
-            dot.setAttribute('r', '7'); dot.setAttribute('fill', '#3d8a8a');
+            dot.setAttribute('r', '8'); dot.setAttribute('fill', '#3d8a8a');
             dot.setAttribute('stroke', 'white'); dot.setAttribute('stroke-width', '2');
             svgEl.appendChild(dot);
 
             const lbl2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            lbl2.setAttribute('x', xv); lbl2.setAttribute('y', axisY - 16);
+            lbl2.setAttribute('x', xv); lbl2.setAttribute('y', axisY - 20);
             lbl2.setAttribute('text-anchor', 'middle');
             lbl2.setAttribute('font-size', '12'); lbl2.setAttribute('font-weight', '900');
             lbl2.setAttribute('fill', '#3d8a8a'); lbl2.setAttribute('font-family', 'Nunito,sans-serif');
@@ -4579,6 +4607,25 @@
         // Clamp to a sane maximum range (avoid infinitely small tick labels)
         const MAX_ZOOM_RANGE = 10000;
         if (decZoomRange[1] - decZoomRange[0] > MAX_ZOOM_RANGE) decZoomRange = [0, 10];
+        decRenderNL();
+    }
+
+    /** Pin the current value as a named point on the number line for multi-value comparison. */
+    function decNlPinCurrent() {
+        const val = decGetValue();
+        if (decDigits.length === 0) return;
+        const frac = Math.abs(val) < 0.001 ? 4 : Math.abs(val) < 0.01 ? 3 : Math.abs(val) < 0.1 ? 2 : 1;
+        const label = decFmtSE(val, frac);
+        // Avoid exact duplicates
+        if (!decNlPinnedPoints.some(p => p.value === val)) {
+            decNlPinnedPoints.push({ value: val, label });
+        }
+        decRenderNL();
+    }
+
+    /** Clear all pinned points from the number line. */
+    function decNlClearPins() {
+        decNlPinnedPoints = [];
         decRenderNL();
     }
 
