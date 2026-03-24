@@ -276,11 +276,13 @@
            Decimaltal – Decimal Numbers Visualisation
            ═══════════════════════════════════════════════ */
         #workspace-decimaltal {
-            background-color: #f8f8f5;
+            background-color: #ffffff;
             background-image:
-                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Crect width='20' height='20' fill='none' stroke='%23c8c8c4' stroke-width='0.5'/%3E%3C/svg%3E"),
-                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='none' stroke='%23a0a09c' stroke-width='1'/%3E%3C/svg%3E");
-            background-size: 20px 20px, 100px 100px;
+                linear-gradient(rgba(160,160,160,0.45) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(160,160,160,0.45) 1px, transparent 1px),
+                linear-gradient(rgba(200,200,200,0.3) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(200,200,200,0.3) 1px, transparent 1px);
+            background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
         }
 
         /* Place value table – taller for classroom visibility */
@@ -289,12 +291,14 @@
         .dec-col:last-child { border-right:none; }
         /* Column divider visibility toggle */
         .dec-table.hide-dividers .dec-col { border-right-color:transparent !important; }
-        .dec-col-head { border-bottom:3px solid; text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; padding:6px 4px; min-height:72px; flex-shrink:0; }
-        .dec-col-head .cab { font-size:22px; font-weight:900; line-height:1; }
-        .dec-col-head .cnm { font-size:11px; font-weight:800; white-space:normal; overflow:hidden; text-overflow:ellipsis; max-width:100%; line-height:1.2; }
+        /* Column headers – clean solid off-white, no color, bold black text */
+        .dec-col-head { border-bottom:3px solid #444; text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; padding:6px 4px; min-height:90px; flex-shrink:0; background:#f2f2ee; color:#111; }
+        .dec-col-head .cab { font-size:24px; font-weight:900; line-height:1; color:#111; }
+        .dec-col-head .cnm { font-size:11px; font-weight:800; overflow-wrap:anywhere; max-width:100%; line-height:1.2; color:#111; }
+        .dec-col-head .cval { font-size:15px; font-weight:900; color:#111; line-height:1.2; margin-top:1px; }
         .dec-col-body { flex:1; display:flex; align-items:center; justify-content:center; padding:4px; overflow:visible; }
-        /* Decimal separator – bold permanent anchor */
-        .dec-sep { width:28px; flex-shrink:0; background:rgba(30,30,30,0.06); border-left:5px solid #111; border-right:5px solid #111; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:22px; position:relative; z-index:6; }
+        /* Decimal separator – bold permanent anchor with solid white background */
+        .dec-sep { width:28px; flex-shrink:0; background:#fff; border-left:5px solid #111; border-right:5px solid #111; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:22px; position:relative; z-index:6; }
         .dec-dot { width:16px; height:16px; border-radius:50%; background:#111; box-shadow:0 0 0 5px rgba(30,30,30,0.15); }
 
         /* Digit tokens – large solid black digits, no bounding box */
@@ -311,15 +315,8 @@
         .dec-tab-panel { display:none; overflow:auto; padding:16px; }
         .dec-tab-panel.active { display:flex; flex-direction:column; gap:12px; }
 
-        /* Blocks tool – solid opaque 2D shapes, sharp edges */
-        .dec-blk-row { display:flex; flex-wrap:wrap; gap:5px; align-items:flex-end; }
-        .dec-blk-one { width:44px; height:44px; border-radius:0; border:2px solid; display:inline-block; position:relative; }
-        .dec-blk-ten-strip { display:flex; flex-direction:column; gap:0; }
-        .dec-blk-ten-strip span { display:block; width:44px; height:4px; border-left:2px solid; border-right:2px solid; }
-        .dec-blk-ten-strip span:first-child { border-top:2px solid; }
-        .dec-blk-ten-strip span:last-child { border-bottom:2px solid; }
-        .dec-blk-tenth { width:44px; height:6px; border-radius:0; border:2px solid; display:inline-block; }
-        .dec-blk-hundredth { width:6px; height:6px; border-radius:0; border:1px solid; display:inline-block; }
+        /* Blocks tool – 3D SVG blocks row layout */
+        .dec-blk-row { display:flex; flex-wrap:wrap; gap:6px; align-items:flex-end; }
         .dec-blk-enter { animation: decBlkAppear 0.35s cubic-bezier(0.34,1.56,0.64,1); }
         @keyframes decBlkAppear { from { transform:scale(0) rotate(-10deg); opacity:0; } to { transform:scale(1) rotate(0deg); opacity:1; } }
 
@@ -3973,12 +3970,10 @@
             const colDiv = document.createElement('div');
             colDiv.className = 'dec-col';
             colDiv.id = `dec-col-${col.key}`;
-            colDiv.style.cssText = `border-right-color:rgba(170,185,210,0.5);`;
 
             const head = document.createElement('div');
             head.className = 'dec-col-head';
-            head.style.cssText = `color:${col.color}; border-color:${col.color}; background:${col.bg};`;
-            head.innerHTML = `<span class="cab">${col.abbr}</span><span class="cnm">${col.label}</span>`;
+            head.innerHTML = `<span class="cab">${col.abbr}</span><span class="cnm">${col.label}</span><span class="cval"></span>`;
 
             const body = document.createElement('div');
             body.className = 'dec-col-body';
@@ -4044,6 +4039,7 @@
         decRenderBlocks();
         decRenderNL();
         decUpdateValueDisplay();
+        decUpdateHeaders();
     }
 
     /** Position digit tokens over the correct column using CSS left transition. */
@@ -4114,6 +4110,20 @@
         if (warn) warn.classList.toggle('hidden', !decDigits.some(d => d.pos < -3 || d.pos > 3));
     }
 
+    /** Update each column header's value span based on current decDigits. */
+    function decUpdateHeaders() {
+        DEC_COL_DEFS.forEach(col => {
+            const valSpan = document.querySelector(`#dec-col-${col.key} .cval`);
+            if (!valSpan) return;
+            const digit = decDigits.find(d => d.pos === col.pos);
+            if (!digit) { valSpan.textContent = ''; return; }
+            // col.pos: 3=thousands, 0=ones, -1=tenths, etc. 10^pos gives place value.
+            const contribution = digit.val * Math.pow(10, col.pos);
+            // Max decimal places = -col.pos (0 for integers, 1 for tenths, 2 for hundredths…)
+            valSpan.textContent = decFmtSE(contribution, Math.max(0, -col.pos));
+        });
+    }
+
     // ── Table drag (manual shift) ─────────────────────────────────────────────
     function decOnTableDragStart(e) {
         if (e.button !== 0) return;
@@ -4146,6 +4156,7 @@
         decRenderBlocks();
         decRenderNL();
         decUpdateValueDisplay();
+        decUpdateHeaders();
     }
 
     // ── Tool toggle (Show/Hide each panel independently) ──────────────────────
@@ -4199,6 +4210,7 @@
         decRenderBlocks();
         decRenderNL();
         decUpdateValueDisplay();
+        decUpdateHeaders();
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -4239,6 +4251,62 @@
         decRenderBlocks(true);
     }
 
+    /**
+     * Draw a 3D-style block as an inline SVG element.
+     * Uses a simple axonometric projection: front face + top face + right face.
+     * @param {number} faceW  Width of the front face in pixels
+     * @param {number} faceH  Height of the front face in pixels
+     * @param {number} depth  Depth offset (thickness of top/right faces)
+     * @param {string} cFront Front face fill color
+     * @param {string} cTop   Top face fill color (lighter)
+     * @param {string} cRight Right face fill color (darker)
+     * @returns {SVGElement}
+     */
+    function decMake3DBlock(faceW, faceH, depth, cFront, cTop, cRight) {
+        const ns   = 'http://www.w3.org/2000/svg';
+        const svgW = faceW + depth;
+        const svgH = faceH + depth;
+        const svg  = document.createElementNS(ns, 'svg');
+        svg.setAttribute('width',   svgW);
+        svg.setAttribute('height',  svgH);
+        svg.setAttribute('viewBox', `0 0 ${svgW} ${svgH}`);
+        svg.style.display  = 'block';
+        svg.style.overflow = 'visible';
+        const stroke = '#1a1a1a';
+        const sw     = '1';
+
+        // Front face (bottom-left quadrant)
+        const front = document.createElementNS(ns, 'rect');
+        front.setAttribute('x', 0);
+        front.setAttribute('y', depth);
+        front.setAttribute('width',  faceW);
+        front.setAttribute('height', faceH);
+        front.setAttribute('fill',   cFront);
+        front.setAttribute('stroke', stroke);
+        front.setAttribute('stroke-width', sw);
+        svg.appendChild(front);
+
+        // Top face (parallelogram, upper area)
+        const top = document.createElementNS(ns, 'polygon');
+        top.setAttribute('points',
+            `0,${depth} ${depth},0 ${faceW + depth},0 ${faceW},${depth}`);
+        top.setAttribute('fill',   cTop);
+        top.setAttribute('stroke', stroke);
+        top.setAttribute('stroke-width', sw);
+        svg.appendChild(top);
+
+        // Right face (parallelogram, right area)
+        const right = document.createElementNS(ns, 'polygon');
+        right.setAttribute('points',
+            `${faceW},${depth} ${faceW + depth},0 ${faceW + depth},${faceH} ${faceW},${faceH + depth}`);
+        right.setAttribute('fill',   cRight);
+        right.setAttribute('stroke', stroke);
+        right.setAttribute('stroke-width', sw);
+        svg.appendChild(right);
+
+        return svg;
+    }
+
     function decRenderBlocks(newItems) {
         const area    = document.getElementById('dec-blocks-area');
         const actions = document.getElementById('dec-blocks-actions');
@@ -4246,13 +4314,20 @@
         area.innerHTML    = '';
         actions.innerHTML = '';
 
-        function makeGroup(label, color, items) {
+        // 3D color palettes: front, top (lighter), right (darker)
+        const p3 = {
+            ones:       { front: '#2E7D32', top: '#66BB6A', right: '#1B5E20' },
+            tenths:     { front: '#6A1B9A', top: '#AB47BC', right: '#4A148C' },
+            hundredths: { front: '#00695C', top: '#26A69A', right: '#004D40' }
+        };
+
+        function makeGroup(label, labelColor, items) {
             if (items.length === 0) return null;
-            const g = document.createElement('div');
+            const g   = document.createElement('div');
             g.className = 'flex flex-col gap-2';
             const lbl = document.createElement('div');
-            lbl.className = 'text-xs font-bold uppercase tracking-wide';
-            lbl.style.color = color;
+            lbl.className   = 'text-xs font-bold uppercase tracking-wide';
+            lbl.style.color = labelColor;
             lbl.textContent = label;
             g.appendChild(lbl);
             const row = document.createElement('div');
@@ -4262,58 +4337,56 @@
             return g;
         }
 
-        // Solid opaque block colors (non-transparent, 2D physical material style)
-        const solidOnes   = { bg: '#FFCDD2', border: '#C62828', color: '#C62828' };
-        const solidTenths = { bg: '#E1BEE7', border: '#6a1b9a', color: '#6a1b9a' };
-        const solidHths   = { bg: '#B2DFDB', border: '#00695c', color: '#00695c' };
+        function makeWrapper(title, anim) {
+            const w = document.createElement('div');
+            w.className   = anim ? 'dec-blk-enter' : '';
+            w.style.cssText = 'display:inline-block; line-height:0;';
+            w.title = title;
+            return w;
+        }
 
-        // Ones blocks (cubes)
-        const oneEls = Array.from({length: decBlocksState.ones}, (_, k) => {
-            const b = document.createElement('div');
-            b.className = 'dec-blk-one' + (newItems ? ' dec-blk-enter' : '');
-            b.style.cssText = `background:${solidOnes.bg}; border-color:${solidOnes.border};`;
-            b.title = 'En ental (1)';
-            return b;
+        // ── Ones: large 3D cube (front 60×60, depth 20) ──────────────────────
+        const oneEls = Array.from({length: decBlocksState.ones}, () => {
+            const w = makeWrapper('En ental (1)', !!newItems);
+            w.appendChild(decMake3DBlock(60, 60, 20, p3.ones.front, p3.ones.top, p3.ones.right));
+            return w;
         });
-        const gOnes = makeGroup(`Ental ×${decBlocksState.ones}`, solidOnes.color, oneEls);
+        const gOnes = makeGroup(
+            `Ental ×${decBlocksState.ones}`, p3.ones.front, oneEls);
         if (gOnes) area.appendChild(gOnes);
 
-        // Tenths blocks (horizontal rods/slices)
-        const tenthEls = Array.from({length: Math.min(decBlocksState.tenths, 30)}, (_, k) => {
-            const b = document.createElement('div');
-            b.className = 'dec-blk-tenth' + (newItems ? ' dec-blk-enter' : '');
-            b.style.cssText = `background:${solidTenths.bg}; border-color:${solidTenths.border};`;
-            b.title = 'En tiondel (0,1)';
-            return b;
+        // ── Tenths: flat slabs (front 60×9, depth 20) ────────────────────────
+        const tenthEls = Array.from({length: Math.min(decBlocksState.tenths, 30)}, () => {
+            const w = makeWrapper('En tiondel (0,1)', !!newItems);
+            w.appendChild(decMake3DBlock(60, 9, 20, p3.tenths.front, p3.tenths.top, p3.tenths.right));
+            return w;
         });
         const gTenths = makeGroup(
             `Tiondelar ×${decBlocksState.tenths}${decBlocksState.tenths > 30 ? ' (visar max 30)' : ''}`,
-            solidTenths.color, tenthEls);
+            p3.tenths.front, tenthEls);
         if (gTenths) area.appendChild(gTenths);
 
-        // Hundredths blocks (tiny squares)
-        const hthEls = Array.from({length: Math.min(decBlocksState.hundredths, 50)}, (_, k) => {
-            const b = document.createElement('div');
-            b.className = 'dec-blk-hundredth' + (newItems ? ' dec-blk-enter' : '');
-            b.style.cssText = `background:${solidHths.bg}; border-color:${solidHths.border};`;
-            b.title = 'En hundradel (0,01)';
-            return b;
+        // ── Hundredths: small 3D cubes (front 14×14, depth 5) ────────────────
+        const hthEls = Array.from({length: Math.min(decBlocksState.hundredths, 50)}, () => {
+            const w = makeWrapper('En hundradel (0,01)', !!newItems);
+            w.appendChild(decMake3DBlock(14, 14, 5, p3.hundredths.front, p3.hundredths.top, p3.hundredths.right));
+            return w;
         });
         const gHths = makeGroup(
             `Hundradelar ×${decBlocksState.hundredths}${decBlocksState.hundredths > 50 ? ' (visar max 50)' : ''}`,
-            solidHths.color, hthEls);
+            p3.hundredths.front, hthEls);
         if (gHths) area.appendChild(gHths);
 
         if (decBlocksState.ones === 0 && decBlocksState.tenths === 0 && decBlocksState.hundredths === 0) {
             area.innerHTML = '<p class="text-soft-muted text-sm italic">Skriv ett decimaltal för att se basmaterialet.</p>';
         }
 
-        // Split / Merge action buttons
+        // ── Split / Merge action buttons ──────────────────────────────────────
         const btnStyle = 'px-3 py-1.5 rounded font-bold text-xs border-2 cursor-pointer transition-all hover:opacity-80 font-[Nunito]';
         if (decBlocksState.ones > 0) {
             const b = document.createElement('button');
             b.className = btnStyle;
-            b.style.cssText = `background:${solidOnes.bg};border-color:${solidOnes.border};color:${solidOnes.color};`;
+            b.style.cssText = 'background:#C8E6C9;border-color:#2E7D32;color:#1B5E20;';
             b.innerHTML = '<i class="fas fa-expand-arrows-alt mr-1"></i>Dela 1 ental → 10 tiondelar';
             b.onclick = decSplitOne;
             actions.appendChild(b);
@@ -4321,7 +4394,7 @@
         if (decBlocksState.tenths >= 10) {
             const b = document.createElement('button');
             b.className = btnStyle;
-            b.style.cssText = `background:${solidOnes.bg};border-color:${solidOnes.border};color:${solidOnes.color};`;
+            b.style.cssText = 'background:#C8E6C9;border-color:#2E7D32;color:#1B5E20;';
             b.innerHTML = '<i class="fas fa-compress-arrows-alt mr-1"></i>Slå ihop 10 tiondelar → 1 ental';
             b.onclick = decMergeTenths;
             actions.appendChild(b);
@@ -4329,7 +4402,7 @@
         if (decBlocksState.tenths > 0) {
             const b = document.createElement('button');
             b.className = btnStyle;
-            b.style.cssText = `background:${solidTenths.bg};border-color:${solidTenths.border};color:${solidTenths.color};`;
+            b.style.cssText = 'background:#E1BEE7;border-color:#6A1B9A;color:#4A148C;';
             b.innerHTML = '<i class="fas fa-expand-arrows-alt mr-1"></i>Dela 1 tiondel → 10 hundradelar';
             b.onclick = decSplitTenth;
             actions.appendChild(b);
@@ -4337,7 +4410,7 @@
         if (decBlocksState.hundredths >= 10) {
             const b = document.createElement('button');
             b.className = btnStyle;
-            b.style.cssText = `background:${solidTenths.bg};border-color:${solidTenths.border};color:${solidTenths.color};`;
+            b.style.cssText = 'background:#E1BEE7;border-color:#6A1B9A;color:#4A148C;';
             b.innerHTML = '<i class="fas fa-compress-arrows-alt mr-1"></i>Slå ihop 10 hundradelar → 1 tiondel';
             b.onclick = decMergeHundredths;
             actions.appendChild(b);
