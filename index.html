@@ -4054,11 +4054,17 @@
      * Insert placeholder zeros for any missing integer column between pos=0
      * and the highest occupied position. This ensures e.g. 1,5 × 100 shows
      * digits 1, 5, 0 in Hundreds, Tens, Ones rather than leaving Ones empty.
+     * Also inserts a leading zero in the Ones column when all digits have
+     * shifted into fractional positions (e.g. 1,4 ÷ 10 → 0,14).
      */
     function decInsertPlaceholderZeros() {
         if (decDigits.length === 0) return;
         const maxPos = Math.max(...decDigits.map(d => d.pos));
-        if (maxPos <= 0) return; // all digits at/below ones, no gap possible
+        // If all digits are in fractional positions, add a leading zero in the Ones column
+        if (maxPos < 0) {
+            decDigits.push({ pos: 0, val: 0 });
+        }
+        if (maxPos <= 0) return; // all digits at/below ones, no integer gap possible
         for (let pos = 0; pos < maxPos; pos++) {
             if (!decDigits.some(d => d.pos === pos)) {
                 decDigits.push({ pos, val: 0 });
